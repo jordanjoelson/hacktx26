@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // The iMessage agent has its own package and tsconfig.
+    "agent/**",
   ]),
 ]);
 
