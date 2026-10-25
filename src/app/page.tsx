@@ -27,7 +27,7 @@ export default function Home() {
               </span>
             </h1>
             <p className="mt-5 max-w-md text-lg text-black">
-              Enter your number and Lately will text you on iMessage.
+              Enter your number, then send Lately a text on iMessage.
             </p>
           </div>
 

@@ -1,20 +1,46 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { requestIntro, type IntroState } from "./actions";
 
 const initial: IntroState = { status: "idle" };
 
+/** iPhones, iPads (which report a Mac user agent), and Android phones. */
+function isPhone(): boolean {
+  const ua = navigator.userAgent;
+  return /iPhone|iPad|iPod|Android/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+}
+
+/** "+14158505302" → "(415) 850-5302" */
+function formatLine(e164: string): string {
+  const d = e164.replace(/^\+1/, "");
+  return d.length === 10 ? `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}` : e164;
+}
+
 export function IntroForm() {
   const [state, action, pending] = useActionState(requestIntro, initial);
+  const link = state.status === "ready" ? state.link : undefined;
 
-  if (state.status === "sent") {
+  // On a phone, jump straight into Messages with the hello typed out. The button below is the fallback.
+  useEffect(() => {
+    if (link && isPhone()) window.location.href = link;
+  }, [link]);
+
+  if (state.status === "ready") {
     return (
       <div role="status" className="rounded-lg border border-neutral-200 bg-white p-6">
-        <p className="text-2xl font-medium">Check your messages.</p>
+        <p className="text-2xl font-medium">Say hi to Lately.</p>
         <p className="mt-2 text-base leading-7 text-neutral-800">
-          Lately will text you in a few seconds. Reply with anything to get started.
+          Text <span className="font-semibold">&ldquo;{state.hello}&rdquo;</span> to{" "}
+          <span className="font-semibold whitespace-nowrap">{formatLine(state.line)}</span> from your iPhone, and
+          Lately will text back.
         </p>
+        <a
+          href={state.link}
+          className="mt-6 flex h-14 w-full items-center justify-center rounded-full bg-black text-base font-semibold text-white"
+        >
+          Open Messages →
+        </a>
       </div>
     );
   }
@@ -74,7 +100,7 @@ export function IntroForm() {
       ) : null}
 
       <p className="mt-8 text-base leading-7 text-neutral-800">
-        By clicking the &quot;Text me&quot; button, I agree to Lately&apos;s{" "}
+        By clicking the &quot;Text Lately&quot; button, I agree to Lately&apos;s{" "}
         <a href="#terms" className="text-[#0047ab] underline">
           Terms of Service
         </a>{" "}
@@ -94,7 +120,7 @@ export function IntroForm() {
         disabled={pending}
         className="mt-10 h-14 w-full rounded-full bg-black text-base font-semibold text-white disabled:opacity-60"
       >
-        {pending ? "Sending…" : "Text me →"}
+        {pending ? "One sec…" : "Text Lately →"}
       </button>
     </form>
   );
