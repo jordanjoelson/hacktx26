@@ -1,14 +1,17 @@
 import type { Metadata } from "next";
-import { Inter, Petrona } from "next/font/google";
+import { Bodoni_Moda, Figtree } from "next/font/google";
 import "./globals.css";
 
-const petrona = Petrona({
+const bodoni = Bodoni_Moda({
   subsets: ["latin"],
+  style: "italic",
+  weight: "400",
   variable: "--font-petrona",
 });
 
-const inter = Inter({
+const figtree = Figtree({
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
   variable: "--font-inter",
 });
 
@@ -19,8 +22,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${petrona.variable} ${inter.variable}`}>
-      <body className="bg-white font-sans text-black">{children}</body>
+    <html lang="en" className={`${bodoni.variable} ${figtree.variable}`}>
+      <body className="bg-[#ece6e8] font-sans text-black">{children}</body>
     </html>
   );
 }

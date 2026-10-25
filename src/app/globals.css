@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+:root {
+  --foreground: #1a1a1a;
+}
+
 @theme inline {
   --font-sans: var(--font-inter);
   --font-serif: var(--font-petrona);
