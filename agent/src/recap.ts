@@ -12,8 +12,11 @@ const PROMPT = `You write Lately postcards: a short, warm weekly recap that a pe
 Write in first person as the sender, talking to the recipient. Use only details from the sender's messages below; never invent events, places, or people. If there isn't much, keep it short and honest.
 
 Reply with JSON only (no code fences), exactly this shape:
-{"stories": ["...", "...", "..."], "captions": ["...", "...", "...", "..."], "recs": [{"title": "...", "body": "..."}, {"title": "...", "body": "..."}], "tip": "...", "funFact": "..."}
+{"title": "...", "intro": "...", "storyTitles": ["...", "...", "..."], "stories": ["...", "...", "..."], "captions": ["...", "...", "...", "..."], "recs": [{"title": "...", "body": "..."}, {"title": "...", "body": "..."}], "tip": "...", "funFact": "..."}
 
+- title: a natural headline for this particular week, under 10 words. Avoid generic self-help language.
+- intro: one sentence that introduces the week's actual moments, without repeating the headline.
+- storyTitles: 3 short, specific headings, one for each story. Do not invent details for a heading.
 - stories: 3 short paragraphs, 2 to 4 sentences each, about different parts of the week.
 - captions: 4 photo captions, 1 to 3 words each.
 - recs: 2 things the recipient would like, drawn from the week. Title is 1 to 3 words.
@@ -45,6 +48,9 @@ export function toContent(json: Record<string, unknown>, from: string, to: strin
   return {
     from,
     to,
+    title: str(json.title, "A little of life, lately."),
+    intro: str(json.intro, ""),
+    storyTitles: [0, 1, 2].map((i) => str(list("storyTitles")[i], "")),
     stories: [0, 1, 2].map((i) => str(stories[i], "")),
     // shortcut: photo files aren't stored yet, so the sample photos stand in; swap in the user's media once it's uploaded.
     photos: SAMPLE_POSTCARD.photos.map((photo, i) => ({ src: photo.src, caption: str(captions[i], "") })),
