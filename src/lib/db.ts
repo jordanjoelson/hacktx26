@@ -38,6 +38,11 @@ export async function getPostcardByViewToken(token: string): Promise<PostcardCon
   return rows[0]?.content;
 }
 
+/** Queues a hello text for the agent. Each number is texted at most once, so repeat sign-ups can't spam it. */
+export async function createIntro(phone: string): Promise<void> {
+  await db().query(`insert into intros (phone) values ($1) on conflict (phone) do nothing`, [phone]);
+}
+
 export async function updatePostcardContent(editToken: string, content: PostcardContent): Promise<void> {
   await db().query(`update postcards set content = $2, updated_at = now() where edit_token = $1`, [editToken, content]);
 }

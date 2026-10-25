@@ -23,6 +23,7 @@ Media-only messages, and any message where Muse fails or takes longer than 8 s, 
 - A typing indicator shows while the agent works on a reply.
 - After a sender's first reply, the agent sends a contact card named "Lately" with the line's number so they can save it.
 - Names, every message both ways, and "already sent the card" are saved in Tiger Cloud (`src/users.ts`), so they survive restarts. See [Database](#database).
+- Homepage sign-ups: the web app saves the number to `intros`; every 5 s the agent texts each new one a hello (`src/intros.ts`). Each number is texted at most once.
 - Each sender's messages are handled in order through a per-sender queue, so one sender's slow work never blocks anyone else.
 - Each inbound message is logged as one line (timestamp, sender, content type). Each attachment's name, mimeType, and size are logged and saved to the `media` table. The files themselves aren't stored yet.
 - An error in one message is logged and never crashes the loop.
@@ -37,12 +38,13 @@ agent/
     config.ts   # loads .env, validates required env vars
     db.ts       # Postgres pool for Tiger Cloud
     index.ts    # starts Spectrum, message loop, per-sender queue, shutdown
+    intros.ts   # texts hello to numbers signed up on the homepage
     handler.ts  # handleInbound(): flattens content, read receipt, reply, contact card
     muse.ts      # museReply(): asks Muse Spark for a reply, parses a learned name
     users.ts     # per-sender memory in the DB: name, history, contact card sent, media
     responses.ts # canned reply pools and chooseReply() (fallback)
   db/
-    schema.sql   # tables: users, messages, media, recaps
+    schema.sql   # tables: users, messages, media, recaps, postcards, intros
     tiger-ca.pem # Timescale's CA cert, so Node can verify the TLS connection
   .env.example
   package.json

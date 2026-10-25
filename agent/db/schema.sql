@@ -59,3 +59,13 @@ create table if not exists postcards (
   updated_at timestamptz not null default now()
 );
 create index if not exists postcards_user_week on postcards (user_id, week_start);
+
+-- Homepage sign-ups: the web app inserts a number, the agent texts it hello (src/intros.ts).
+-- phone is unique, so each number is texted at most once.
+create table if not exists intros (
+  id         bigint generated always as identity primary key,
+  phone      text not null unique,             -- E.164, e.g. +15125550123
+  created_at timestamptz not null default now(),
+  sent_at    timestamptz,                      -- set when the agent picks it up; null = waiting
+  error      text                              -- why sending failed, if it did
+);
