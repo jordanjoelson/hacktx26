@@ -22,12 +22,12 @@ Media-only messages, and any message where Muse fails or takes longer than 8 s, 
 - The sender's message flips to "Read" as soon as it arrives.
 - A typing indicator shows while the agent works on a reply.
 - After a sender's first reply, the agent sends a contact card named "Lately" with the line's number so they can save it.
-- Names, recent history, and "already sent the card" live in memory (`src/users.ts`) and reset when the process restarts. They move to Tiger Cloud (Postgres) next; see [Database](#database).
+- Names, every message both ways, and "already sent the card" are saved in Tiger Cloud (`src/users.ts`), so they survive restarts. See [Database](#database).
 - Each sender's messages are handled in order through a per-sender queue, so one sender's slow work never blocks anyone else.
-- Each inbound message is logged as one line (timestamp, sender, content type). Each attachment's name, mimeType, and size are logged too. Nothing is saved yet.
+- Each inbound message is logged as one line (timestamp, sender, content type). Each attachment's name, mimeType, and size are logged and saved to the `media` table. The files themselves aren't stored yet.
 - An error in one message is logged and never crashes the loop.
 
-Coming next: onboarding, saving users and history to Tiger Cloud, saving media (storage not chosen yet), Muse Spark postcard generation, and weekly cron sends. Most of that goes in `src/handler.ts`.
+Coming next: onboarding, uploading media files (storage not chosen yet), Muse Spark postcard generation, and weekly cron sends. Most of that goes in `src/handler.ts`.
 
 ## Layout
 
@@ -35,11 +35,15 @@ Coming next: onboarding, saving users and history to Tiger Cloud, saving media (
 agent/
   src/
     config.ts   # loads .env, validates required env vars
+    db.ts       # Postgres pool for Tiger Cloud
     index.ts    # starts Spectrum, message loop, per-sender queue, shutdown
     handler.ts  # handleInbound(): flattens content, read receipt, reply, contact card
     muse.ts      # museReply(): asks Muse Spark for a reply, parses a learned name
-    users.ts     # per-sender memory: name, recent history, contact card sent
+    users.ts     # per-sender memory in the DB: name, history, contact card sent, media
     responses.ts # canned reply pools and chooseReply() (fallback)
+  db/
+    schema.sql   # tables: users, messages, media, recaps
+    tiger-ca.pem # Timescale's CA cert, so Node can verify the TLS connection
   .env.example
   package.json
   tsconfig.json
@@ -73,7 +77,9 @@ The agent's database is a **Tiger Cloud** service (managed Postgres 18 with Time
 
 - Connection string goes in `.env` as `DATABASE_URL` (`postgres://tsdbadmin:<password>@<host>:<port>/tsdb?sslmode=require`). Get it from a teammate or the [Tiger Cloud console](https://console.cloud.tigerdata.com). Never commit it.
 - Quick check: `psql "$DATABASE_URL" -c "\dx timescaledb"`
-- Nothing reads `DATABASE_URL` yet. When `users.ts` moves to the database, add it to `REQUIRED` in `src/config.ts`.
+- Create or update the tables: `psql "$DATABASE_URL" -f db/schema.sql` (safe to re-run).
+- Tables: `users` (one per sender), `messages` (every turn; Muse sees each user's last 12), `media` (photo/video metadata), `recaps` (one per user per week; not written yet).
+- Tiger Cloud's certificate is signed by Timescale's own CA, so `src/db.ts` verifies it against `db/tiger-ca.pem`. That CA expires Oct 2027; to refresh it, grab the second cert from `openssl s_client -starttls postgres -connect <host>:<port> -showcerts`.
 
 ## Deploy to Railway
 

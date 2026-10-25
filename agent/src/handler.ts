@@ -2,7 +2,7 @@ import { contact, type Content, type Message, type Space, type SpectrumInstance 
 import { imessage } from "spectrum-ts/providers/imessage";
 import { museReply } from "./muse";
 import { chooseReply } from "./responses";
-import { getUser, remember, type UserState } from "./users";
+import { getUser, markIntroduced, remember, saveMedia, saveName, type UserState } from "./users";
 
 export type App = SpectrumInstance;
 
@@ -65,11 +65,12 @@ export function describeContent(content: Content): string {
   return content.type === "group" ? `group(${content.items.length})` : content.type;
 }
 
-function logMedia(item: MediaItem): void {
-  // TODO(next milestone): `await item.attachment.read()` and upload the bytes to Supabase storage.
+async function saveMediaItem(user: UserState, spectrumId: string, item: MediaItem): Promise<void> {
+  // TODO(next milestone): `await item.attachment.read()`, upload the bytes to object storage, and set storage_url.
   // Not downloading here keeps replies fast; a 30 MB video used to delay the reply until it finished.
   const size = item.attachment.size === undefined ? "size unknown" : `${item.attachment.size} bytes`;
   console.log(`  ${item.kind}: ${item.name} (${item.mimeType}, ${size})`);
+  await saveMedia(user, spectrumId, item);
 }
 
 /** e.g. "[sent 2 photos and 1 video]", so Muse knows media came along with the text. */
@@ -87,22 +88,22 @@ function mediaNote(media: MediaItem[]): string {
  * Muse writes the reply when the message has text; media-only messages get a canned reply.
  * Canned replies are also the fallback if Muse fails or times out.
  */
-async function composeReply(user: UserState, inbound: Inbound): Promise<string> {
+async function composeReply(user: UserState, inbound: Inbound, spectrumId: string): Promise<string> {
   const turn = [inbound.texts.join("\n"), mediaNote(inbound.media)].filter(Boolean).join("\n");
 
   let reply: string | undefined;
   if (inbound.texts.length > 0) {
     const result = await museReply(user, turn);
     if (result?.name) {
-      user.name = result.name;
+      await saveName(user, result.name);
       console.log(`  learned name: ${result.name}`);
     }
     reply = result?.reply;
   }
   reply ??= chooseReply(inbound);
 
-  remember(user, "user", turn);
-  remember(user, "assistant", reply);
+  await remember(user, "user", turn, spectrumId);
+  await remember(user, "assistant", reply);
   return reply;
 }
 
@@ -112,7 +113,7 @@ async function composeReply(user: UserState, inbound: Inbound): Promise<string> 
  */
 async function shareContactOnce(space: Space, user: UserState): Promise<void> {
   if (user.introduced || !imessage.is(space) || space.type !== "dm") return;
-  user.introduced = true;
+  await markIntroduced(user);
 
   await space.send("P.S. Tap the card below and hit “Create New Contact” to save me as Lately 👍");
   await space.send(
@@ -126,22 +127,22 @@ async function shareContactOnce(space: Space, user: UserState): Promise<void> {
 
 /**
  * Handles one inbound message from one sender. Called serially per sender.
- * Onboarding, saving to Supabase, and Muse Spark calls plug in here.
+ * Onboarding and Muse Spark calls plug in here.
  */
 export async function handleInbound(app: App, space: Space, message: Message): Promise<void> {
   const inbound = flatten(message.content);
   if (inbound.texts.length === 0 && inbound.media.length === 0) return;
 
   const started = Date.now();
-  const user = getUser(message.sender?.id ?? "unknown");
+  const user = await getUser(message.sender?.id ?? "unknown");
 
   // Flips the sender's "Delivered" to "Read <time>". Not awaited, so it never delays the reply.
   message.read().catch((err) => console.error(`  failed to send read receipt:`, err));
 
-  await app.responding(space, async () => space.send(await composeReply(user, inbound)));
+  await app.responding(space, async () => space.send(await composeReply(user, inbound, message.id)));
   console.log(`  replied in ${Date.now() - started} ms`);
 
-  for (const item of inbound.media) logMedia(item);
+  for (const item of inbound.media) await saveMediaItem(user, message.id, item);
 
   try {
     await shareContactOnce(space, user);

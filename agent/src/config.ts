@@ -1,7 +1,7 @@
 import "dotenv/config";
 
 // Add new required env vars here (e.g. SUPABASE_URL).
-const REQUIRED = ["PHOTON_PROJECT_ID", "PHOTON_PROJECT_SECRET", "MUSE_API_KEY"] as const;
+const REQUIRED = ["PHOTON_PROJECT_ID", "PHOTON_PROJECT_SECRET", "MUSE_API_KEY", "DATABASE_URL"] as const;
 
 type RequiredKey = (typeof REQUIRED)[number];
 

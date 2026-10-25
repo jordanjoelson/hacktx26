@@ -14,11 +14,13 @@
   },
   "dependencies": {
     "dotenv": "^18.0.9",
+    "pg": "^8.23.1",
     "spectrum-ts": "^12.14.0",
     "tsx": "^4.23.15"
   },
   "devDependencies": {
     "@types/node": "^20.19.43",
+    "@types/pg": "^8.23.1",
     "typescript": "^6.0.3"
   }
 }
