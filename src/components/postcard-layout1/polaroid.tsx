@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/cn";
 import { hash, seeded } from "./random";
-import type { PostcardPhoto } from "@/components/postcard/types";
+import type { PostcardPhoto } from "./types";
 
 const TAPES = ["yellow", "pink", "blue"] as const;
 

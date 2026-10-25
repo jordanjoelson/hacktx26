@@ -6,28 +6,6 @@
 
 @theme inline {
   --font-sans: var(--font-inter);
-  --font-serif: var(--font-petrona);  --color-cobalt: #0047ab;
-}
-
-@keyframes lately-blink {
-  0%,
-  90%,
-  100% {
-    transform: scaleY(1);
-  }
-  94% {
-    transform: scaleY(0.08);
-  }
-}
-
-.lately-eye {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: lately-blink 4.8s linear infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .lately-eye {
-    animation: none;
-  }
+  --font-serif: var(--font-petrona);
+  --color-cobalt: #0047ab;
 }

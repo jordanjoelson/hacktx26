@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Rough, roughArrow } from "./rough";
-import type { PostcardPhoto } from "@/components/postcard/types";
+import type { PostcardPhoto } from "./types";
 
 /**
  * Extra photos that didn't fit on the page, as a fanned stack of prints.

@@ -1,4 +1,4 @@
-import type { PostcardData } from "@/components/postcard/types";
+import type { PostcardData } from "@/components/postcard-layout1/types";
 
 // A sample week. Text supports a few inline marks, drawn by hand on the page.
 // Use them sparingly:   ==highlight==   ~~crossed out~~   __underlined__

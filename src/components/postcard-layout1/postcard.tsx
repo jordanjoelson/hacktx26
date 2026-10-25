@@ -12,7 +12,7 @@ import { PhotoStack } from "./photo-stack";
 import { PhotoViewer } from "./photo-viewer";
 import { Polaroid } from "./polaroid";
 import { Rough, roughArrow } from "./rough";
-import type { PostcardData, PostcardPhoto } from "@/components/postcard/types";
+import type { PostcardData, PostcardPhoto } from "./types";
 
 // layout1: the scrapbook version (paper sheet, tilted polaroids, two pages).
 /** Photos 0–1 go on page 1, 2–4 on page 2; the rest go in the flip-through stack. */

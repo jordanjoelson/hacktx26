@@ -3,7 +3,6 @@
 import { useEffect, useRef } from "react";
 import rough from "roughjs";
 import type { RoughSVG } from "roughjs/bin/svg";
-import type { Options } from "roughjs/bin/core";
 
 type Draw = (rc: RoughSVG) => SVGElement | SVGElement[];
 
@@ -53,21 +52,4 @@ export function Rough({
       style={style}
     />
   );
-}
-
-/** A curved hand-drawn arrow through `points`, with a two-stroke head at the end. */
-export function roughArrow(rc: RoughSVG, points: [number, number][], options: Options = {}): SVGElement[] {
-  const [x1, y1] = points[points.length - 2]!;
-  const [x2, y2] = points[points.length - 1]!;
-  const angle = Math.atan2(y2 - y1, x2 - x1);
-  const head = 12;
-  const wing = (offset: number): [number, number] => [
-    x2 - head * Math.cos(angle + offset),
-    y2 - head * Math.sin(angle + offset),
-  ];
-  const opts = { roughness: 1.6, strokeWidth: 2.2, ...options };
-  return [
-    rc.curve(points, opts),
-    rc.linearPath([wing(0.5), [x2, y2], wing(-0.5)], opts),
-  ];
 }

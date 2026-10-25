@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import type { PostcardPhoto } from "@/components/postcard/types";
+import type { PostcardPhoto } from "./types";
 
 /** Full-screen view of one photo as a big tilted print. Escape or a click outside closes it. */
 export function PhotoViewer({ photo, onClose }: { photo: PostcardPhoto; onClose: () => void }) {

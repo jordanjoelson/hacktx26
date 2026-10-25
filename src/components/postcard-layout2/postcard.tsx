@@ -10,7 +10,7 @@ import { MarkedText } from "./marked-text";
 import { PhotoStack } from "./photo-stack";
 import { PhotoViewer } from "./photo-viewer";
 import { Rough } from "./rough";
-import type { PostcardData, PostcardPhoto } from "@/components/postcard/types";
+import type { PostcardData, PostcardPhoto } from "./types";
 
 /** Photos 0–4 get their own cards; the rest go in the flip-through stack. */
 const PLACED = 5;
