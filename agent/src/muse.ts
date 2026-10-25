@@ -6,7 +6,7 @@ const MODEL = "muse-spark-1.3";
 // Past this, the caller falls back to a canned reply so the user is never left waiting.
 const TIMEOUT_MS = 8000;
 
-const PERSONA = `You are Lately, a friendly companion people text over iMessage about their week. They send you photos, videos, and notes, and at the end of the week you turn them into a recap.
+const PERSONA = `You are Lately, a friendly companion people text over iMessage about their week. They send you photos, videos, and notes, and you turn their week into a recap postcard they can send to someone they care about. They can ask for it any time.
 
 Write like a close friend texting back:
 - 1 or 2 short sentences, under 40 words. Plain text only: no markdown, lists, or quotes around the reply.
@@ -23,12 +23,15 @@ function nameInstructions(name: string | undefined): string {
   return `You don't know the user's name yet. Unless the conversation shows you already asked, end your reply by casually asking what you should call them.`;
 }
 
-const NAME_FORMAT = `If the user's latest message tells you their name, write "NAME: <their first name>" on the first line, then your reply on the next line. Otherwise write only the reply.`;
+const NAME_FORMAT = `If the user's latest message asks for their recap or postcard now, in any wording (e.g. "recap", "can I get my recap", "make one for my mom"), write only "RECAP: <who it's for, or leave blank>" and nothing else.
+Otherwise, if the user's latest message tells you their name, write "NAME: <their first name>" on the first line, then your reply on the next line. Otherwise write only the reply.`;
 
 export interface MuseResult {
   reply: string;
   /** Set when the user just told us their name. */
   name?: string;
+  /** Set when the user asked for their recap; `for` is the recipient if they named one. */
+  recap?: { for?: string };
 }
 
 interface ChatCompletion {
@@ -36,20 +39,37 @@ interface ChatCompletion {
   usage?: { prompt_tokens?: number; completion_tokens?: number };
 }
 
+const cleanName = (text: string) => text.replace(/[^\p{L}\p{M}' -]/gu, "").trim().slice(0, 40);
+
 function parse(content: string): MuseResult | undefined {
+  const recap = /^\s*RECAP:[ \t]*([^\n]*)/i.exec(content);
+  if (recap) {
+    const forWhom = cleanName(recap[1]!);
+    return { reply: "", recap: { for: /^(blank|none|n a|nobody)?$/i.test(forWhom) ? undefined : forWhom } };
+  }
+
   const match = /^\s*NAME:\s*([^\n]+)\n+([\s\S]*)$/i.exec(content);
   const reply = (match ? match[2]! : content).trim();
   if (!reply) return undefined;
 
-  const name = match?.[1]!.replace(/[^\p{L}\p{M}' -]/gu, "").trim().slice(0, 30);
+  const name = match ? cleanName(match[1]!).slice(0, 30) : "";
   return { reply, name: name || undefined };
 }
 
+export interface ChatMessage {
+  role: "system" | "user" | "assistant";
+  content: string;
+}
+
 /**
- * Asks Muse Spark for a reply to the user's latest text, with their recent history for context.
- * Returns undefined on any failure or timeout; the caller falls back to a canned reply.
+ * One Muse Spark chat completion. Returns the text, or undefined on any failure or timeout (logged).
+ * `label` tags the log line.
  */
-export async function museReply(user: UserState, latest: string): Promise<MuseResult | undefined> {
+export async function museComplete(
+  label: string,
+  messages: ChatMessage[],
+  { timeoutMs = TIMEOUT_MS, maxTokens = 1024 }: { timeoutMs?: number; maxTokens?: number } = {},
+): Promise<string | undefined> {
   const started = Date.now();
   try {
     const res = await fetch(ENDPOINT, {
@@ -62,30 +82,42 @@ export async function museReply(user: UserState, latest: string): Promise<MuseRe
         model: MODEL,
         // "minimal" replied in ~1.5 s vs ~3.3 s for "low" in testing, with replies just as good.
         reasoning_effort: "minimal",
-        // Reasoning tokens count toward this cap too, so leave room beyond the short reply.
-        max_completion_tokens: 1024,
-        messages: [
-          { role: "system", content: `${PERSONA}\n\n${nameInstructions(user.name)}\n\n${NAME_FORMAT}` },
-          ...user.history,
-          { role: "user", content: latest },
-        ],
+        // Reasoning tokens count toward this cap too, so leave room beyond the visible output.
+        max_completion_tokens: maxTokens,
+        messages,
       }),
-      signal: AbortSignal.timeout(TIMEOUT_MS),
+      signal: AbortSignal.timeout(timeoutMs),
     });
 
     if (!res.ok) {
-      console.error(`  muse error ${res.status}: ${(await res.text()).slice(0, 300)}`);
+      console.error(`  ${label} error ${res.status}: ${(await res.text()).slice(0, 300)}`);
       return undefined;
     }
 
     const data = (await res.json()) as ChatCompletion;
     const { prompt_tokens = 0, completion_tokens = 0 } = data.usage ?? {};
-    console.log(`  muse: ${Date.now() - started} ms, ${prompt_tokens} in / ${completion_tokens} out tokens`);
-
-    return parse(data.choices?.[0]?.message?.content ?? "");
+    console.log(`  ${label}: ${Date.now() - started} ms, ${prompt_tokens} in / ${completion_tokens} out tokens`);
+    return data.choices?.[0]?.message?.content ?? undefined;
   } catch (err) {
-    const reason = err instanceof Error && err.name === "TimeoutError" ? `timed out after ${TIMEOUT_MS} ms` : err;
-    console.error(`  muse failed:`, reason);
+    const reason = err instanceof Error && err.name === "TimeoutError" ? `timed out after ${timeoutMs} ms` : err;
+    console.error(`  ${label} failed:`, reason);
     return undefined;
   }
+}
+
+/**
+ * Asks Muse Spark for a reply to the user's latest text, with their recent history for context.
+ * Returns undefined on any failure or timeout; the caller falls back to a canned reply.
+ */
+export async function museReply(user: UserState, latest: string): Promise<MuseResult | undefined> {
+  const content = await museComplete("muse", [
+    { role: "system", content: `${PERSONA}
+
+${nameInstructions(user.name)}
+
+${NAME_FORMAT}` },
+    ...user.history,
+    { role: "user", content: latest },
+  ]);
+  return content === undefined ? undefined : parse(content);
 }

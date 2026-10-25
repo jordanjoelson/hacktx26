@@ -8,6 +8,8 @@ create table if not exists users (
   introduced_at timestamptz,                  -- when the contact card was sent; null = not yet
   created_at    timestamptz not null default now()
 );
+-- Recap asked for before we knew their name: who it's for ('' = nobody named). Made once they say their name.
+alter table users add column if not exists pending_recap_for text;
 
 -- Conversation log; Muse sees each user's most recent rows.
 create table if not exists messages (
@@ -51,7 +53,7 @@ create table if not exists postcards (
   id         bigint generated always as identity primary key,
   user_id    bigint not null references users(id),   -- the sender
   week_start date not null,
-  content    jsonb not null,                        -- PostcardContent, see src/lib/postcard.ts in the web app
+  content    jsonb not null,                        -- PostcardContent, see src/postcard.ts
   edit_token text not null unique,                  -- /edit/<token>: the sender previews and edits
   view_token text not null unique,                  -- /p/<token>: the recipient reads
   sent_at    timestamptz,
@@ -59,13 +61,3 @@ create table if not exists postcards (
   updated_at timestamptz not null default now()
 );
 create index if not exists postcards_user_week on postcards (user_id, week_start);
-
--- Homepage sign-ups: the web app inserts a number, the agent texts it hello (src/intros.ts).
--- phone is unique, so each number is texted at most once.
-create table if not exists intros (
-  id         bigint generated always as identity primary key,
-  phone      text not null unique,             -- E.164, e.g. +15125550123
-  created_at timestamptz not null default now(),
-  sent_at    timestamptz,                      -- set when the agent picks it up; null = waiting
-  error      text                              -- why sending failed, if it did
-);

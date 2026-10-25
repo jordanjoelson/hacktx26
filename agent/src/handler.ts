@@ -1,8 +1,9 @@
 import { contact, type Content, type Message, type Space, type SpectrumInstance } from "spectrum-ts";
 import { imessage } from "spectrum-ts/providers/imessage";
 import { museReply } from "./muse";
+import { createRecap, RECAP_COMMAND } from "./recap";
 import { chooseReply } from "./responses";
-import { getUser, markIntroduced, remember, saveMedia, saveName, type UserState } from "./users";
+import { getUser, markIntroduced, remember, saveMedia, saveName, setPendingRecap, type UserState } from "./users";
 
 export type App = SpectrumInstance;
 
@@ -92,16 +93,36 @@ async function composeReply(user: UserState, inbound: Inbound, spectrumId: strin
   const turn = [inbound.texts.join("\n"), mediaNote(inbound.media)].filter(Boolean).join("\n");
 
   let reply: string | undefined;
-  if (inbound.texts.length > 0) {
+  const recap = inbound.media.length === 0 ? RECAP_COMMAND.exec(turn) : null;
+  if (recap) {
+    reply = await requestRecap(user, recap[1]);
+  } else if (inbound.texts.length > 0) {
     const result = await museReply(user, turn);
+    if (result?.recap) return finish(user, turn, spectrumId, await requestRecap(user, result.recap.for));
     if (result?.name) {
       await saveName(user, result.name);
       console.log(`  learned name: ${result.name}`);
+      if (user.pendingRecapFor !== undefined) {
+        const forWhom = user.pendingRecapFor || undefined;
+        await setPendingRecap(user, undefined);
+        return finish(user, turn, spectrumId, `Thanks, ${result.name}! ${await createRecap(user, forWhom)}`);
+      }
     }
     reply = result?.reply;
   }
   reply ??= chooseReply(inbound);
+  return finish(user, turn, spectrumId, reply);
+}
 
+/** Makes the recap now, or first asks their name so the postcard isn't signed "From me". */
+async function requestRecap(user: UserState, forWhom: string | undefined): Promise<string> {
+  if (user.name) return createRecap(user, forWhom);
+  await setPendingRecap(user, forWhom ?? "");
+  return "On it! What should I sign it as? Just your first name.";
+}
+
+/** Saves both sides of the exchange and returns the reply to send. */
+async function finish(user: UserState, turn: string, spectrumId: string, reply: string): Promise<string> {
   await remember(user, "user", turn, spectrumId);
   await remember(user, "assistant", reply);
   return reply;

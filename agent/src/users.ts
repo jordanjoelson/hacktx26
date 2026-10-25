@@ -13,6 +13,8 @@ export interface UserState {
   name?: string;
   history: Turn[];
   introduced: boolean;
+  /** A recap they asked for before telling us their name: who it's for ("" = nobody named). */
+  pendingRecapFor?: string;
 }
 
 /** How many recent messages (both sides) Muse sees for context. */
@@ -20,10 +22,15 @@ const HISTORY_LIMIT = 12;
 
 /** Loads a sender (creating them on first contact) with their last HISTORY_LIMIT messages. */
 export async function getUser(senderId: string): Promise<UserState> {
-  const { rows: [row] } = await db.query<{ id: string; name: string | null; introduced: boolean }>(
+  const { rows: [row] } = await db.query<{
+    id: string;
+    name: string | null;
+    introduced: boolean;
+    pending_recap_for: string | null;
+  }>(
     `insert into users (sender_id) values ($1)
      on conflict (sender_id) do update set sender_id = excluded.sender_id
-     returning id, name, introduced_at is not null as introduced`,
+     returning id, name, introduced_at is not null as introduced, pending_recap_for`,
     [senderId],
   );
   const user = row!;
@@ -35,7 +42,19 @@ export async function getUser(senderId: string): Promise<UserState> {
     [user.id, HISTORY_LIMIT],
   );
 
-  return { id: user.id, name: user.name ?? undefined, introduced: user.introduced, history };
+  return {
+    id: user.id,
+    name: user.name ?? undefined,
+    introduced: user.introduced,
+    pendingRecapFor: user.pending_recap_for ?? undefined,
+    history,
+  };
+}
+
+/** Remembers (or clears, with undefined) a recap to make once we learn their name. */
+export async function setPendingRecap(user: UserState, forWhom: string | undefined): Promise<void> {
+  user.pendingRecapFor = forWhom;
+  await db.query(`update users set pending_recap_for = $2 where id = $1`, [user.id, forWhom ?? null]);
 }
 
 export async function remember(

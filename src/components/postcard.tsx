@@ -185,49 +185,53 @@ export function Postcard({
           <Text value={content.stories[2] ?? ""} name={name} onChange={edit((d, v) => void (d.stories[2] = v))} />
         </section>
 
-        <section className={`${tile} col-span-2 flex min-h-36 items-center justify-center bg-white sm:col-span-2`}>
-          <span className="absolute top-3 left-4 text-xs">Saved</span>
-          <p className="text-4xl">
-            <Mark>{date?.when}</Mark>
-          </p>
-        </section>
+        {date ? (
+          <>
+          <section className={`${tile} col-span-2 flex min-h-36 items-center justify-center bg-white sm:col-span-2`}>
+            <span className="absolute top-3 left-4 text-xs">Saved</span>
+            <p className="text-4xl">
+              <Mark>{date?.when}</Mark>
+            </p>
+          </section>
 
-        <section className={`${tile} col-span-2 bg-white p-4 sm:col-span-4`}>
-          <ul>
-            {content.dates.map((item, i) => {
-              if (editable) {
+          <section className={`${tile} col-span-2 bg-white p-4 sm:col-span-4`}>
+            <ul>
+              {content.dates.map((item, i) => {
+                if (editable) {
+                  return (
+                    <li key={i} className="py-1.5 text-sm">
+                      <div className="flex items-baseline justify-between gap-4">
+                        <Text value={item.label} name={name} single onChange={edit((d, v) => void (d.dates[i]!.label = v))} />
+                        <span className="text-xs">
+                          <Text value={item.when} name={name} single onChange={edit((d, v) => void (d.dates[i]!.when = v))} />
+                        </span>
+                      </div>
+                      <p className="pt-1 text-xs leading-5">
+                        <Text value={item.note} name={name} onChange={edit((d, v) => void (d.dates[i]!.note = v))} />
+                      </p>
+                    </li>
+                  );
+                }
+                const open = i === openDate;
                 return (
-                  <li key={i} className="py-1.5 text-sm">
-                    <div className="flex items-baseline justify-between gap-4">
-                      <Text value={item.label} name={name} single onChange={edit((d, v) => void (d.dates[i]!.label = v))} />
-                      <span className="text-xs">
-                        <Text value={item.when} name={name} single onChange={edit((d, v) => void (d.dates[i]!.when = v))} />
-                      </span>
-                    </div>
-                    <p className="pt-1 text-xs leading-5">
-                      <Text value={item.note} name={name} onChange={edit((d, v) => void (d.dates[i]!.note = v))} />
-                    </p>
+                  <li key={i}>
+                    <button
+                      type="button"
+                      aria-expanded={open}
+                      onClick={() => setOpenDate(i)}
+                      className="flex w-full items-baseline justify-between gap-4 py-1.5 text-left text-sm"
+                    >
+                      <span>{rich(item.label, name)}</span>
+                      <span className="text-xs">{item.when}</span>
+                    </button>
+                    {open ? <p className="pb-2 text-xs leading-5">{rich(item.note, name)}</p> : null}
                   </li>
                 );
-              }
-              const open = i === openDate;
-              return (
-                <li key={i}>
-                  <button
-                    type="button"
-                    aria-expanded={open}
-                    onClick={() => setOpenDate(i)}
-                    className="flex w-full items-baseline justify-between gap-4 py-1.5 text-left text-sm"
-                  >
-                    <span>{rich(item.label, name)}</span>
-                    <span className="text-xs">{item.when}</span>
-                  </button>
-                  {open ? <p className="pb-2 text-xs leading-5">{rich(item.note, name)}</p> : null}
-                </li>
-              );
-            })}
-          </ul>
-        </section>
+              })}
+            </ul>
+          </section>
+          </>
+        ) : null}
       </div>
       {view ? <Viewer src={view.src} caption={view.caption} onClose={() => setView(null)} /> : null}
     </main>
