@@ -276,7 +276,8 @@ void main() {
 `;
 
 const UNIFORMS = {
-  colors: [[0.011764705882352941,0.10980392156862745,0.14901960784313725],[0.10588235294117647,0.4235294117647059,0.6588235294117647],[0.35294117647058826,0.8235294117647058,0.9568627450980393],[0.9176470588235294,0.9764705882352941,1],[0.9176470588235294,0.9764705882352941,1],[0.9176470588235294,0.9764705882352941,1],[0.9176470588235294,0.9764705882352941,1],[0.9176470588235294,0.9764705882352941,1]] as [number, number, number][],
+  // Light-to-dark so the waves sit on the homepage's dark background (#181819), with the light blues as highlights.
+  colors: [[0.9176470588235294,0.9764705882352941,1],[0.35294117647058826,0.8235294117647058,0.9568627450980393],[0.10588235294117647,0.4235294117647059,0.6588235294117647],[0.011764705882352941,0.10980392156862745,0.14901960784313725],[0.03529411764705882,0.0392156862745098,0.050980392156862744],[0.03529411764705882,0.0392156862745098,0.050980392156862744],[0.03529411764705882,0.0392156862745098,0.050980392156862744],[0.03529411764705882,0.0392156862745098,0.050980392156862744]] as [number, number, number][],
   colorCount: 4,
   scale: 2.000,
   intensity: 0.540,
@@ -288,7 +289,8 @@ const UNIFORMS = {
   saturation: 1.000,
   hue: 0.0000,
   vignette: 0.210,
-  blur: 0.0020,
+  // 0 skips the 5-tap blur: at 0.002 it was invisible but made every pixel 5x the work.
+  blur: 0,
   grain: 0.101,
   seed: 4012.0,
   rotate: 5.6549,
@@ -415,7 +417,8 @@ export function ShaderBackground({ className }: { className?: string }) {
       const rawHeight = Math.max(1, Math.round(bounds.height * dpr));
       const pixelScale = Math.min(
         1,
-        Math.sqrt(2_000_000 / Math.max(1, rawWidth * rawHeight)),
+        // The waves are soft, so ~1M pixels looks the same as full resolution at half the GPU cost.
+        Math.sqrt(1_000_000 / Math.max(1, rawWidth * rawHeight)),
       );
       const width = Math.max(1, Math.round(rawWidth * pixelScale));
       const height = Math.max(1, Math.round(rawHeight * pixelScale));

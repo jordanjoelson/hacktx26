@@ -17,9 +17,35 @@ function formatLine(e164: string): string {
   return d.length === 10 ? `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}` : e164;
 }
 
-/** `invite` is the sender's code on /j/<code> pages; it goes into the first text so the agent subscribes them. */
-export function IntroForm({ invite }: { invite?: string }) {
+/**
+ * `invite` is the sender's code on /j/<code> pages; it goes into the first text so the agent subscribes them.
+ * `dark` styles it for a dark background (the homepage).
+ */
+export function IntroForm({ invite, dark = false }: { invite?: string; dark?: boolean }) {
   const [state, action, pending] = useActionState(requestIntro, initial);
+  const c = dark
+    ? {
+        card: "border-white/15 bg-white/10 text-white",
+        muted: "text-white/75",
+        field: "border-transparent bg-white/10 text-white",
+        divider: "bg-white/20",
+        placeholder: "placeholder:text-white/40",
+        error: "text-[#ff9b8f]",
+        errorBorder: "border-[#ff9b8f]",
+        link: "text-[#9cc7ff]",
+        button: "bg-white text-black",
+      }
+    : {
+        card: "border-neutral-200 bg-white",
+        muted: "text-neutral-800",
+        field: "border-neutral-200 bg-white focus-within:border-[#0047ab]",
+        divider: "bg-neutral-200",
+        placeholder: "placeholder:text-neutral-400",
+        error: "text-[#b42318]",
+        errorBorder: "border-[#b42318]",
+        link: "text-[#0047ab]",
+        button: "bg-black text-white",
+      };
   const link = state.status === "ready" ? state.link : undefined;
 
   // On a phone, jump straight into Messages with the hello typed out. The button below is the fallback.
@@ -29,16 +55,16 @@ export function IntroForm({ invite }: { invite?: string }) {
 
   if (state.status === "ready") {
     return (
-      <div role="status" className="rounded-lg border border-neutral-200 bg-white p-6">
+      <div role="status" className={`rounded-lg border p-6 ${c.card}`}>
         <p className="text-2xl font-medium">Say hi to Lately.</p>
-        <p className="mt-2 text-base leading-7 text-neutral-800">
+        <p className={`mt-2 text-base leading-7 ${c.muted}`}>
           Text <span className="font-semibold">&ldquo;{state.hello}&rdquo;</span> to{" "}
-          <span className="font-semibold whitespace-nowrap">{formatLine(state.line)}</span> from your iPhone, and
+          <span className="font-semibold whitespace-nowrap">{formatLine(state.line)}</span> from your iPhone, and{" "}
           {invite ? "you'll get their recaps from Lately." : "Lately will text back."}
         </p>
         <a
           href={state.link}
-          className="mt-6 flex h-14 w-full items-center justify-center rounded-full bg-black text-base font-semibold text-white"
+          className={`mt-6 flex h-14 w-full items-center justify-center rounded-full text-base font-semibold ${c.button}`}
         >
           Open Messages →
         </a>
@@ -52,7 +78,7 @@ export function IntroForm({ invite }: { invite?: string }) {
     <form action={action}>
       {invite ? <input type="hidden" name="invite" value={invite} /> : null}
       <div
-        className={`flex h-14 items-center rounded-lg border bg-white px-4 focus-within:border-[#0047ab] ${error ? "border-[#b42318]" : "border-neutral-200"}`}
+        className={`flex h-14 items-center rounded-lg border px-4 ${c.field} ${error ? c.errorBorder : ""}`}
       >
         <span className="flex items-center gap-1.5" aria-hidden>
           <svg width="20" height="14" viewBox="0 0 190 100" className="shrink-0 rounded-[2px]">
@@ -77,7 +103,7 @@ export function IntroForm({ invite }: { invite?: string }) {
             />
           </svg>
         </span>
-        <span className="mx-3 h-5 w-px bg-neutral-200" aria-hidden />
+        <span className={`mx-3 h-5 w-px ${c.divider}`} aria-hidden />
         <label className="sr-only" htmlFor="phone">
           Phone number
         </label>
@@ -92,26 +118,26 @@ export function IntroForm({ invite }: { invite?: string }) {
           defaultValue={error?.phone}
           aria-invalid={Boolean(error)}
           aria-describedby={error ? "phone-error" : undefined}
-          className="w-full bg-transparent outline-none placeholder:text-neutral-400"
+          className={`w-full bg-transparent outline-none ${c.placeholder}`}
         />
       </div>
       {error ? (
-        <p id="phone-error" role="alert" className="mt-2 text-sm text-[#b42318]">
+        <p id="phone-error" role="alert" className={`mt-2 text-sm ${c.error}`}>
           {error.message}
         </p>
       ) : null}
 
-      <p className="mt-8 text-base leading-7 text-neutral-800">
+      <p className={`mt-8 text-base leading-7 ${c.muted}`}>
         By clicking the &quot;Text Lately&quot; button, I agree to Lately&apos;s{" "}
-        <a href="#terms" className="text-[#0047ab] underline">
+        <a href="#terms" className={`underline ${c.link}`}>
           Terms of Service
         </a>{" "}
         and{" "}
-        <a href="#sms" className="text-[#0047ab] underline">
+        <a href="#sms" className={`underline ${c.link}`}>
           SMS Terms
         </a>
         , and acknowledge the{" "}
-        <a href="#privacy" className="text-[#0047ab] underline">
+        <a href="#privacy" className={`underline ${c.link}`}>
           Privacy Policy
         </a>
         .
@@ -120,7 +146,7 @@ export function IntroForm({ invite }: { invite?: string }) {
       <button
         type="submit"
         disabled={pending}
-        className="mt-10 h-14 w-full rounded-full bg-black text-base font-semibold text-white disabled:opacity-60"
+        className={`mt-10 h-14 w-full rounded-full text-base font-semibold disabled:opacity-60 ${c.button}`}
       >
         {pending ? "One sec…" : "Text Lately →"}
       </button>

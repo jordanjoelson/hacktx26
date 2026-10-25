@@ -4,11 +4,11 @@ import { cn } from "@/lib/cn";
 import styles from "./lately-mascot.module.css";
 
 export type LatelyMascotProps = {
-  /** Size of the image container. Responsive width/height classes can override it. */
+  /** Size of the image container, also used to pick the image resolution. Responsive classes can override the box. */
   size?: number | string;
   /** Idle blinks; `none` keeps the open-eye frame completely still. */
   animation?: "idle" | "none";
-  /** Subtle vertical float. Set false to keep only the blink. */
+  /** Subtle vertical float. Off by default; the blink alone keeps it alive. */
   float?: boolean;
   /** Optional accessible description; decorative by default. */
   label?: string;
@@ -19,10 +19,12 @@ export type LatelyMascotProps = {
 export function LatelyMascot({
   size = 160,
   animation = "idle",
-  float = true,
+  float = false,
   label,
   className,
 }: LatelyMascotProps) {
+  // Lets Next.js serve a right-sized image instead of the 270px original; scaling that down every frame made the float shimmer.
+  const sizes = typeof size === "number" ? `${size}px` : size;
   return (
     <span
       className={cn(
@@ -41,7 +43,7 @@ export function LatelyMascot({
         alt={label ?? ""}
         width={270}
         height={315}
-        unoptimized
+        sizes={sizes}
         loading="eager"
         className={styles.artwork}
       />
@@ -52,7 +54,7 @@ export function LatelyMascot({
           aria-hidden="true"
           width={270}
           height={315}
-          unoptimized
+          sizes={sizes}
           loading="eager"
           className={cn(styles.artwork, styles.blink)}
         />
