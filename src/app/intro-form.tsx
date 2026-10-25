@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect } from "react";
+import { SendPlane } from "@/components/send-plane";
 import { requestIntro, type IntroState } from "./actions";
 
 const initial: IntroState = { status: "idle" };
@@ -146,9 +147,11 @@ export function IntroForm({ invite, dark = false }: { invite?: string; dark?: bo
       <button
         type="submit"
         disabled={pending}
-        className={`mt-10 h-14 w-full rounded-full text-base font-semibold disabled:opacity-60 ${c.button}`}
+        // No dimming while pending: the plane flying off is the feedback.
+        className={`mt-10 inline-flex h-14 w-full items-center justify-center gap-2 rounded-full text-base font-semibold ${c.button}`}
       >
-        {pending ? "One sec…" : "Text Lately →"}
+        Text Lately
+        <SendPlane flying={pending} />
       </button>
     </form>
   );
