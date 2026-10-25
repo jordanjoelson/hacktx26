@@ -1,0 +1,68 @@
+/* Let responsive utility classes override the default container size. */
+@layer components {
+  .mascot {
+    width: var(--mascot-size);
+    height: var(--mascot-size);
+  }
+}
+
+.mascot {
+  position: relative;
+  display: block;
+  max-width: 100%;
+}
+
+.artwork {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.floating {
+  /* ease-in-out so it slows at the top and bottom instead of reversing abruptly; 2.5s each way = 5s cycle. */
+  animation: float 2.5s ease-in-out infinite alternate;
+  /* Keep both artwork frames on the same translated compositor layer. */
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+}
+
+.blink {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  /* A 160ms closed-eye frame every 5 seconds; no fading or morphing. */
+  animation: blink 5s steps(1, end) infinite;
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  96.8% {
+    opacity: 1;
+  }
+}
+
+@keyframes float {
+  /* The tiny rotate keeps the browser from snapping the image to whole pixels, which made the float step. */
+  from {
+    transform: translate3d(0, 0, 0) rotate(0.01deg);
+  }
+  to {
+    transform: translate3d(0, -4px, 0) rotate(0.01deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .floating,
+  .blink {
+    animation: none;
+    will-change: auto;
+  }
+
+  .floating {
+    transform: none;
+  }
+}

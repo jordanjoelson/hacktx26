@@ -1,4 +1,4 @@
-import { Logo } from "@/components/logo";
+import { LatelyMascot } from "@/components/lately-mascot";
 import { ShaderBackground } from "@/components/shader-background";
 import { IntroForm } from "./intro-form";
 
@@ -23,7 +23,7 @@ export default function Home() {
                 <span className="font-serif font-normal italic tracking-[-0.03em]">
                   Lately
                 </span>
-                <Logo className="h-14 w-14 self-center sm:h-16 sm:w-16" />
+                <LatelyMascot className="h-14 w-14 self-center sm:h-16 sm:w-16" />
               </span>
             </h1>
             <p className="mt-5 max-w-md text-lg text-black">

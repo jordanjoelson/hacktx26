@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { Logo } from "@/components/logo";
+import { LatelyMascot } from "@/components/lately-mascot";
 import { getInviter } from "@/lib/db";
 import { IntroForm } from "../../intro-form";
 
@@ -30,7 +30,7 @@ async function Invite({ params }: Pick<PageProps<"/j/[code]">, "params">) {
   return (
     <div className="w-full max-w-md">
       <section className="rounded-2xl bg-[#0047ab] p-6 text-white">
-        <Logo className="h-10 w-10" />
+        <LatelyMascot className="h-10 w-10" />
         <h1 className="mt-6 text-4xl leading-tight font-medium tracking-[-0.03em] sm:text-5xl">
           Get {who}&apos;s week, <span className="font-serif font-normal italic">lately</span>.
         </h1>
