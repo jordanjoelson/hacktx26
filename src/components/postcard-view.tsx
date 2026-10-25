@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { Postcard } from "@/components/postcard";
 import { PostcardGrid } from "@/components/postcard-grid";
 import { PostcardPaper } from "@/components/postcard-paper/postcard";
@@ -132,7 +133,8 @@ export function StyleControl({ content, onChange }: { content: PostcardContent; 
         </svg>
         Style
       </button>
-      {open ? (
+      {/* Portaled to <body>: the top bar's backdrop blur would otherwise trap this fixed panel inside the bar. */}
+      {open && typeof document !== "undefined" ? createPortal(
         <div
           ref={panel}
           role="dialog"
@@ -150,6 +152,7 @@ export function StyleControl({ content, onChange }: { content: PostcardContent; 
           <Segmented label="Mode" options={MODES} value={style.mode} onChange={(mode) => set({ mode })} />
           <Segmented label="Photos" options={SIDES} value={style.photoSide} onChange={(photoSide) => set({ photoSide })} disabled={style.format === "blog"} />
           {style.format === "blog" ? <p className="-mt-2 text-xs text-white/50">The blog keeps photos above each story.</p> : null}
+          {style.format === "grid" ? <p className="-mt-2 text-xs text-white/50">In Grid, this applies to wide stories on larger screens.</p> : null}
           <div className="rounded-xl bg-white/5 p-3 text-xs leading-5 text-white/65">
             Rename sections like &ldquo;Fun fact&rdquo; by tapping them while editing. Select words and use <b className="text-white">B</b> to bold them.
           </div>
@@ -164,7 +167,7 @@ export function StyleControl({ content, onChange }: { content: PostcardContent; 
             </button>
           </div>
         </div>
-      ) : null}
+      , document.body) : null}
     </>
   );
 }

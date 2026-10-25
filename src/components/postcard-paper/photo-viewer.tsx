@@ -28,7 +28,8 @@ export function PhotoViewer({ photo, onClose }: { photo: PostcardPhoto; onClose:
     >
       <figure
         onClick={(event) => event.stopPropagation()}
-        className="pc-pop relative w-full max-w-xl bg-white p-3 pb-0 shadow-2xl sm:p-4 sm:pb-0"
+        // The print is always white, so its caption keeps dark ink even in dark mode (which lightens --pc-ink).
+        className="pc-pop relative w-full max-w-xl bg-white p-3 pb-0 text-[#1d1b2e] shadow-2xl sm:p-4 sm:pb-0"
       >
         <img src={photo.src} alt={photo.caption} className="max-h-[70svh] w-full object-cover" style={{ objectPosition: photo.focus }} />
         <figcaption className="py-3 text-center text-2xl font-medium tracking-[-0.02em] sm:py-4 sm:text-3xl">{photo.caption}</figcaption>

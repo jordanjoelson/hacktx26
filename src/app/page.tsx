@@ -6,7 +6,9 @@ export default function Home() {
   return (
     <main className="relative flex min-h-svh flex-col overflow-hidden bg-[#181819] text-white">
       <div
-        className="pointer-events-none absolute inset-x-0 top-[60%] h-full opacity-70"
+        // Pinned to the bottom so the pale end of the waves always sits behind the dark footer text,
+        // even on tall phone layouts where the page is longer than the screen.
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[40%] min-h-72 opacity-70"
         style={{
           maskImage: "linear-gradient(to bottom, transparent, #000 35%)",
           WebkitMaskImage: "linear-gradient(to bottom, transparent, #000 35%)",
