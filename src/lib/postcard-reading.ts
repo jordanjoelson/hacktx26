@@ -3,7 +3,7 @@ import { storyPhotoIndexes, type PostcardContent } from "./postcard.ts";
 /** Use the same recipient substitution as the page, without reading formatting aloud. */
 export function plainPostcardText(text: string, name: string): string {
   return text.replaceAll("{name}", name).replace(/~~[\s\S]*?~~/g, "").replace(/\|\|[\s\S]*?\|\|/g, "(spoiler)")
-    .replace(/==([\s\S]*?)==|\+\+([\s\S]*?)\+\+/g, "$1$2")
+    .replace(/==([\s\S]*?)==|\+\+([\s\S]*?)\+\+|\*\*([\s\S]*?)\*\*/g, "$1$2$3")
     .replace(/\s+/g, " ").trim();
 }
 

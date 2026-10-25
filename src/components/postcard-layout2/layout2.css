@@ -1,0 +1,135 @@
+/* Postcard page styles. Everything is prefixed `l2-` so it can't leak into other pages. */
+
+.l2-root {
+  color: #1d1b2e;
+  background:
+    radial-gradient(60rem 40rem at 10% -10%, #ffd9c2 0%, transparent 60%),
+    radial-gradient(50rem 40rem at 100% 20%, #d9d4ff 0%, transparent 60%),
+    radial-gradient(60rem 50rem at 50% 120%, #ffe7f1 0%, transparent 60%),
+    #f7f2ec;
+  background-attachment: fixed;
+}
+
+/* ---------- Symbols ---------- */
+
+/* Ticket: half-circle notches cut out of both sides. */
+.l2-ticket {
+  -webkit-mask:
+    radial-gradient(circle 14px at 0 50%, #0000 98%, #000) left / 51% 100% no-repeat,
+    radial-gradient(circle 14px at 100% 50%, #0000 98%, #000) right / 51% 100% no-repeat;
+  mask:
+    radial-gradient(circle 14px at 0 50%, #0000 98%, #000) left / 51% 100% no-repeat,
+    radial-gradient(circle 14px at 100% 50%, #0000 98%, #000) right / 51% 100% no-repeat;
+}
+
+/* Bookmark ribbon: a strip with a V cut out of the bottom. */
+.l2-ribbon {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%);
+}
+
+/* ---------- Inline marks ---------- */
+
+/* A marker swipe that sweeps across just the words, wrapping cleanly across lines. */
+.l2-highlight {
+  color: inherit;
+  background: linear-gradient(100deg, #ffe8a3 0%, #ffe08a 100%) no-repeat 0 60% / 0% 72%;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  border-radius: 3px 6px 4px 7px;
+  padding: 0 2px;
+  animation: l2-swipe 700ms 700ms cubic-bezier(0.3, 0.8, 0.3, 1) forwards;
+}
+
+@keyframes l2-swipe {
+  to {
+    background-size: 100% 72%;
+  }
+}
+
+.l2-strike {
+  text-decoration: none;
+  background: linear-gradient(currentColor, currentColor) no-repeat 0 55% / 0% 1.5px;
+  animation: l2-strike 500ms 1100ms ease-out forwards;
+}
+
+@keyframes l2-strike {
+  to {
+    background-size: 100% 1.5px;
+  }
+}
+
+/* ---------- Motion ---------- */
+
+@keyframes l2-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.l2-spin {
+  animation: l2-spin var(--dur, 60s) linear infinite;
+}
+
+/* Cards rise in one after another on load. */
+@keyframes l2-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.l2-rise {
+  animation: l2-rise 500ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: calc(var(--i, 0) * 60ms);
+}
+
+@keyframes l2-deal {
+  from {
+    opacity: 0.4;
+    transform: translate(var(--from-x, 0), 10px) rotate(var(--from-r, 0deg)) scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.l2-deal {
+  animation: l2-deal 360ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+@keyframes l2-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.l2-pop {
+  animation: l2-pop 280ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .l2-spin,
+  .l2-rise,
+  .l2-deal,
+  .l2-pop {
+    animation: none;
+  }
+  .l2-highlight,
+  .l2-strike {
+    animation: none;
+    background-size: 100% 72%;
+  }
+  .l2-strike {
+    background-size: 100% 1.5px;
+  }
+}

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { Postcard } from "@/components/postcard";
+import { PostcardView } from "@/components/postcard-view";
 import { getPostcardByViewToken } from "@/lib/db";
 
 export const metadata: Metadata = {
@@ -22,5 +22,5 @@ async function ViewLoader({ params }: Pick<PageProps<"/p/[token]">, "params">) {
   const { token } = await params;
   const content = await getPostcardByViewToken(token);
   if (!content) notFound();
-  return <Postcard content={content} />;
+  return <PostcardView content={content} />;
 }

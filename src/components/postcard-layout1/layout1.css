@@ -1,0 +1,233 @@
+/* Postcard page styles. Everything is prefixed `l1-` so it can't leak into other pages. */
+
+.l1-root {
+  --ink: #1d1b2e;
+  --margin: 28px;
+  color: var(--ink);
+  background:
+    radial-gradient(60rem 40rem at 10% -10%, #ffd9c2 0%, transparent 60%),
+    radial-gradient(50rem 40rem at 100% 20%, #d9d4ff 0%, transparent 60%),
+    radial-gradient(60rem 50rem at 50% 120%, #ffe7f1 0%, transparent 60%),
+    #f7f2ec;
+  background-attachment: fixed;
+}
+
+@media (min-width: 640px) {
+  .l1-root {
+    --margin: 56px;
+  }
+}
+
+/* ---------- Paper ---------- */
+
+.l1-paper-shadow {
+  filter: drop-shadow(0 24px 30px rgba(29, 27, 46, 0.14)) drop-shadow(0 2px 3px rgba(29, 27, 46, 0.1));
+}
+
+.l1-paper {
+  background-color: #fffdf8;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .38 0 0 0 0 .3 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---------- Polaroids & tape ---------- */
+
+.l1-polaroid {
+  transform: rotate(var(--r, 0deg));
+  transition:
+    transform 260ms cubic-bezier(0.2, 0.9, 0.3, 1.3),
+    box-shadow 260ms ease;
+  box-shadow:
+    0 10px 18px -6px rgba(29, 27, 46, 0.3),
+    0 1px 2px rgba(29, 27, 46, 0.18);
+}
+
+@media (hover: hover) {
+  .l1-polaroid:hover {
+    transform: rotate(calc(var(--r, 0deg) * 0.3)) scale(1.03);
+    box-shadow:
+      0 20px 28px -10px rgba(29, 27, 46, 0.35),
+      0 2px 4px rgba(29, 27, 46, 0.18);
+  }
+}
+
+.l1-tape {
+  clip-path: polygon(
+    0 8%, 4% 0, 9% 10%, 14% 2%, 20% 9%, 26% 0, 32% 8%, 38% 1%, 44% 9%, 50% 0, 56% 8%, 62% 1%, 68% 9%,
+    74% 0, 80% 8%, 86% 1%, 92% 9%, 96% 0, 100% 8%,
+    100% 92%, 96% 100%, 92% 91%, 86% 99%, 80% 92%, 74% 100%, 68% 91%, 62% 99%, 56% 92%, 50% 100%,
+    44% 91%, 38% 99%, 32% 92%, 26% 100%, 20% 91%, 14% 98%, 9% 90%, 4% 100%, 0 92%
+  );
+  mix-blend-mode: multiply;
+}
+
+.l1-tape[data-tone="yellow"] {
+  background: rgba(255, 225, 77, 0.7);
+}
+.l1-tape[data-tone="pink"] {
+  background: rgba(255, 111, 181, 0.5);
+}
+.l1-tape[data-tone="blue"] {
+  background: rgba(120, 170, 255, 0.5);
+}
+
+/* ---------- Stamp, sticky note, ticket, index card ---------- */
+
+.l1-stamp {
+  padding: 7px;
+  background: #fff;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    radial-gradient(circle 4.5px, #0000 95%, #000) -7px -7px / 14px 14px round;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    radial-gradient(circle 4.5px, #0000 95%, #000) -7px -7px / 14px 14px round;
+  filter: drop-shadow(0 4px 6px rgba(29, 27, 46, 0.2));
+}
+
+.l1-sticky {
+  background: linear-gradient(180deg, #fff27a 0%, #ffe14d 100%);
+  box-shadow:
+    0 14px 18px -10px rgba(29, 27, 46, 0.4),
+    inset 0 -12px 18px -14px rgba(120, 90, 0, 0.3);
+}
+
+.l1-ticket {
+  -webkit-mask:
+    radial-gradient(circle 12px at 0 50%, #0000 98%, #000) left / 51% 100% no-repeat,
+    radial-gradient(circle 12px at 100% 50%, #0000 98%, #000) right / 51% 100% no-repeat;
+  mask:
+    radial-gradient(circle 12px at 0 50%, #0000 98%, #000) left / 51% 100% no-repeat,
+    radial-gradient(circle 12px at 100% 50%, #0000 98%, #000) right / 51% 100% no-repeat;
+}
+
+.l1-index-card {
+  background-color: #fff;
+  background-image:
+    linear-gradient(to bottom, transparent 44px, #f4a5a5 44px, #f4a5a5 46px, transparent 46px),
+    repeating-linear-gradient(to bottom, transparent 0 27px, #dfe9f5 27px 28px);
+  background-position: 0 0, 0 46px;
+  box-shadow: 0 12px 20px -10px rgba(29, 27, 46, 0.3);
+}
+
+/* ---------- Inline marks ---------- */
+
+/* A marker swipe that sweeps across just the words, wrapping cleanly across lines. */
+.l1-highlight {
+  color: inherit;
+  background: linear-gradient(100deg, #ffe8a3 0%, #ffe08a 100%) no-repeat 0 60% / 0% 72%;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  border-radius: 3px 6px 4px 7px;
+  padding: 0 2px;
+  animation: l1-swipe 700ms 700ms cubic-bezier(0.3, 0.8, 0.3, 1) forwards;
+}
+
+@keyframes l1-swipe {
+  to {
+    background-size: 100% 72%;
+  }
+}
+
+.l1-strike {
+  text-decoration: none;
+  background: linear-gradient(currentColor, currentColor) no-repeat 0 55% / 0% 1.5px;
+  animation: l1-strike 500ms 1100ms ease-out forwards;
+}
+
+@keyframes l1-strike {
+  to {
+    background-size: 100% 1.5px;
+  }
+}
+
+/* ---------- Motion ---------- */
+
+@keyframes l1-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.l1-spin {
+  animation: l1-spin var(--dur, 60s) linear infinite;
+}
+
+@keyframes l1-page-next {
+  from {
+    opacity: 0;
+    transform: perspective(1400px) translateX(50px) rotateY(-10deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes l1-page-prev {
+  from {
+    opacity: 0;
+    transform: perspective(1400px) translateX(-50px) rotateY(10deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.l1-page-next {
+  animation: l1-page-next 500ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.l1-page-prev {
+  animation: l1-page-prev 500ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes l1-deal {
+  from {
+    opacity: 0.4;
+    transform: translate(var(--from-x, 0), 10px) rotate(var(--from-r, 0deg)) scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.l1-deal {
+  animation: l1-deal 360ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+@keyframes l1-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.88) rotate(-5deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(-1.5deg);
+  }
+}
+
+.l1-pop {
+  animation: l1-pop 320ms cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .l1-spin,
+  .l1-page-next,
+  .l1-page-prev,
+  .l1-deal,
+  .l1-pop {
+    animation: none;
+  }
+  .l1-polaroid {
+    transition: none;
+  }
+  .l1-highlight,
+  .l1-strike {
+    animation: none;
+    background-size: 100% 72%;
+  }
+  .l1-strike {
+    background-size: 100% 1.5px;
+  }
+}

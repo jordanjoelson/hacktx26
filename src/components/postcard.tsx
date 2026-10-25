@@ -2,19 +2,33 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { LatelyMascot } from "@/components/lately-mascot";
 import { PostcardListen } from "@/components/postcard-listen";
-import { storyPhotoIndexes, type PostcardContent } from "@/lib/postcard";
+import { labelEditor, labelFor, labelValue } from "@/components/postcard-labels";
+import { MarkupProvider, Text, type MarkupClasses } from "@/components/postcard-text";
+import { resolveStyle, storyPhotoIndexes, type PostcardContent, type PostcardLabelKey } from "@/lib/postcard";
 import { plainPostcardText, postcardNarration } from "@/lib/postcard-reading";
 import styles from "./postcard.module.css";
 
 type PhotoView = { src: string; caption: string };
 const FALLBACK_TITLES = ["The week, in a few words.", "A little update.", "Before I forget."];
 
+/** Markup and edit-field classes for the blog format. */
+const MARKUP_CLASSES: MarkupClasses = {
+  mark: styles.mark,
+  pinkMark: styles.pinkMark,
+  spoiler: styles.spoiler,
+  spoilerShown: styles.spoilerShown,
+  editText: styles.editText,
+  editField: styles.editField,
+  emptyText: styles.emptyText,
+};
+
 /**
- * One recap, shared by the sample, the recipient link, and the editor. A single feed-width column in the
- * homepage's dark style. `controls` fills the top-right slot (e.g. Edit) and is only passed to the owner.
+ * The blog format: one recap, shared by the sample, the recipient link, and the editor. A single
+ * feed-width column in the homepage's style, dark or light. `controls` fills the top-right slot
+ * (e.g. Edit) and is only passed to the owner.
  */
 export function Postcard({ content, onChange, className = "", controls }: {
   content: PostcardContent;
@@ -24,6 +38,7 @@ export function Postcard({ content, onChange, className = "", controls }: {
 }) {
   const name = content.to.trim() || "you";
   const from = content.from.trim() || "a friend";
+  const style = resolveStyle(content.style);
   const [view, setView] = useState<PhotoView | null>(null);
   const narration = postcardNarration(content);
   const stories = content.stories.map((body, index) => ({ body, index }))
@@ -43,6 +58,12 @@ export function Postcard({ content, onChange, className = "", controls }: {
       apply(draft, value);
       onChange(draft);
     };
+  }
+
+  /** A section label the sender can rename while editing (e.g. "A small realization"). */
+  function label(key: PostcardLabelKey) {
+    return <Text value={onChange ? labelValue(content, "blog", key) : labelFor(content, "blog", key)} name={name}
+      label={`${labelFor(content, "blog", key)} label`} single placeholder={labelFor(content, "blog", key)} onChange={labelEditor(content, onChange, key)} />;
   }
 
   function storyCard({ body, index }: { body: string; index: number }) {
@@ -72,7 +93,9 @@ export function Postcard({ content, onChange, className = "", controls }: {
   }
 
   return (
-    <main className={`${styles.page} ${className}`}>
+    <MarkupProvider classes={MARKUP_CLASSES}>
+    <main className={`${styles.page} ${style.mode === "light" ? styles.light : ""} ${className}`}
+      data-align={style.align} data-headings={style.boldHeadings ? "bold" : "regular"}>
       <nav className={styles.topbar} aria-label="Recap">
         <Link href="/" className={styles.brand} aria-label="Lately home">
           <LatelyMascot size={28} animation="none" />
@@ -100,14 +123,14 @@ export function Postcard({ content, onChange, className = "", controls }: {
         </header>
 
         {content.opener?.trim() && <aside className={styles.opener}>
-          <span className={styles.label}>Before you read</span>
+          <span className={styles.label}>{label("opener")}</span>
           <p><Text value={content.opener} name={name} label="Opener" onChange={edit((d, v) => { d.opener = v; })} /></p>
         </aside>}
 
         {stories[0] && storyCard(stories[0])}
 
         {content.funFact.trim() && <aside className={styles.highlight}>
-          <span className={styles.label}>A small realization</span>
+          <span className={styles.label}>{label("funFact")}</span>
           <p><Text value={content.funFact} name={name} label="Small realization" onChange={edit((d, v) => { d.funFact = v; })} /></p>
         </aside>}
 
@@ -120,21 +143,21 @@ export function Postcard({ content, onChange, className = "", controls }: {
 
         {(recs.length > 0 || content.tip.trim()) && <section className={styles.card}>
           <div className={styles.cardBody}>
-            <h2 className={styles.sectionTitle}>Thought you&apos;d like these</h2>
+            <h2 className={styles.sectionTitle}>{label("recs")}</h2>
             {recs.map((rec) => <div className={styles.listItem} key={rec.index}>
               <h3><Text value={rec.title} name={name} label="Recommendation title" single onChange={edit((d, v) => { d.recs[rec.index].title = v; })} /></h3>
               <div className={styles.small}><Text value={rec.body} name={name} label="Recommendation" onChange={edit((d, v) => { d.recs[rec.index].body = v; })} /></div>
               {rec.url?.startsWith("https://") && <a className={styles.recLink} href={rec.url} target="_blank" rel="noopener noreferrer">
                 {linkLabel(rec.url)} <span aria-hidden="true">↗</span></a>}
             </div>)}
-            {content.tip.trim() && <div className={styles.postscript}><span className={styles.label}>P.S.</span>
+            {content.tip.trim() && <div className={styles.postscript}><span className={styles.label}>{label("tip")}</span>
               <div className={styles.small}><Text value={content.tip} name={name} label="Postscript" onChange={edit((d, v) => { d.tip = v; })} /></div></div>}
           </div>
         </section>}
 
         {dates.length > 0 && <section className={styles.card}>
           <div className={styles.cardBody}>
-            <h2 className={styles.sectionTitle}>Coming up</h2>
+            <h2 className={styles.sectionTitle}>{label("dates")}</h2>
             {dates.map((date) => <div className={styles.dateRow} key={date.index}>
               <span className={styles.dateChip}><Text value={date.when} name={name} label="Date" single onChange={edit((d, v) => { d.dates[date.index].when = v; })} /></span>
               <div className={styles.dateText}>
@@ -147,54 +170,16 @@ export function Postcard({ content, onChange, className = "", controls }: {
 
         <footer className={styles.footer}>
           <div>
-            <span className={styles.signoff}>Until next time,</span>
+            <span className={styles.signoff}>{label("signoff")}</span>
             <span className={styles.signature}>{from}</span>
           </div>
           <Link href="/" className={styles.footerBrand}><LatelyMascot size={24} animation="none" /><span>Sent with Lately</span></Link>
         </footer>
       </div>
-      {content.celebrate && !onChange && <Confetti />}
       {view && <Viewer src={view.src} caption={plainPostcardText(view.caption, name)} onClose={() => setView(null)} />}
     </main>
+    </MarkupProvider>
   );
-}
-
-const MARKUP = /(==.+?==|\+\+.+?\+\+|~~.+?~~|\|\|.+?\|\|)/g;
-/** `interactive` is false inside the edit buttons, where a spoiler can't be its own button; it shows revealed there. */
-function rich(text: string, name: string, interactive = true): ReactNode {
-  return text.replaceAll("{name}", name).split(MARKUP).map((part, i) => {
-    if (i % 2 === 0) return part;
-    if (part.startsWith("~~")) return <s key={i}>{part.slice(2, -2)}</s>;
-    if (part.startsWith("||")) return interactive
-      ? <Spoiler key={i}>{part.slice(2, -2)}</Spoiler>
-      : <span key={i} className={styles.spoilerShown}>{part.slice(2, -2)}</span>;
-    return <mark className={part.startsWith("++") ? styles.pinkMark : styles.mark} key={i}>{part.slice(2, -2)}</mark>;
-  });
-}
-
-function Text({ value, name, onChange, single = false, label }: {
-  value: string; name: string; onChange?: (value: string) => void; single?: boolean; label: string;
-}) {
-  const [editing, setEditing] = useState(false);
-  const area = useRef<HTMLTextAreaElement>(null);
-  useLayoutEffect(() => {
-    if (!area.current) return;
-    area.current.style.height = "auto";
-    area.current.style.height = `${area.current.scrollHeight}px`;
-  }, [editing, value]);
-  if (!onChange) return <>{rich(value, name)}</>;
-  if (editing) {
-    const common = {
-      autoFocus: true, value, "aria-label": label, className: styles.editField,
-      onBlur: () => setEditing(false),
-      onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => onChange(event.target.value),
-      onKeyDown: (event: React.KeyboardEvent) => { if (event.key === "Escape" || (single && event.key === "Enter")) setEditing(false); },
-    };
-    return single ? <input {...common} /> : <textarea {...common} ref={area} />;
-  }
-  return <button type="button" className={styles.editText} aria-label={`Edit ${label.toLowerCase()}`} onClick={() => setEditing(true)}>
-    {value.trim() ? rich(value, name, false) : <span className={styles.emptyText}>Write a little something…</span>}
-  </button>;
 }
 
 function Photo({ src, caption, name, onOpen, onCaption, eager = false }: {
@@ -294,44 +279,6 @@ function Stack({ photos, name, onOpen, captionEditor, eager = false }: {
         </div>)}</figcaption>
       : photos[current]?.caption.trim() && <figcaption><Text value={photos[current].caption} name={name} label="Photo caption" /></figcaption>}
   </figure>;
-}
-
-/** Discord-style spoiler: hidden until tapped. */
-function Spoiler({ children }: { children: ReactNode }) {
-  const [shown, setShown] = useState(false);
-  if (shown) return <span className={styles.spoilerShown}>{children}</span>;
-  return <button type="button" className={styles.spoiler} onClick={() => setShown(true)} aria-label="Spoiler, tap to reveal">
-    <span aria-hidden="true">{children}</span>
-  </button>;
-}
-
-const CONFETTI_COLORS = ["#8bb8e8", "#ff9e80", "#6fdcae", "#ffd166", "#c3a6ff", "#f5f5f7"];
-
-/** One burst of confetti when a good-news recap opens. Pieces are made after mount, so server and client render the same. */
-function Confetti() {
-  const [pieces, setPieces] = useState<{ left: number; delay: number; drift: number; spin: number; color: string; wide: boolean }[]>([]);
-  useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    // Pieces are randomized once on mount; this is the one place the effect sets state on purpose.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setPieces(Array.from({ length: 70 }, (_, i) => ({
-      left: Math.random() * 100,
-      delay: Math.random() * 0.4,
-      drift: (Math.random() - 0.5) * 160,
-      spin: (Math.random() - 0.5) * 1080,
-      color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
-      wide: Math.random() > 0.5,
-    })));
-    const done = setTimeout(() => setPieces([]), 3200);
-    return () => clearTimeout(done);
-  }, []);
-  if (pieces.length === 0) return null;
-  return <div className={styles.confetti} aria-hidden="true">
-    {pieces.map((piece, i) => <span key={i} className={piece.wide ? styles.confettiWide : styles.confettiPiece} style={{
-      left: `${piece.left}%`, background: piece.color, animationDelay: `${piece.delay}s`,
-      "--drift": `${piece.drift}px`, "--spin": `${piece.spin}deg`,
-    } as React.CSSProperties} />)}
-  </div>;
 }
 
 function Viewer({ src, caption, onClose }: PhotoView & { onClose: () => void }) {

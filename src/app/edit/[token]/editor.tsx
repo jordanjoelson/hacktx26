@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { Postcard } from "@/components/postcard";
+import { FormatToolbar } from "@/components/postcard-text";
+import { PostcardView, StyleControl } from "@/components/postcard-view";
 import postcardStyles from "@/components/postcard.module.css";
 import type { SendInfo } from "@/lib/db";
 import type { PostcardContent } from "@/lib/postcard";
@@ -68,21 +69,29 @@ export function Editor({
 
   return (
     <>
-      <Postcard
+      <PostcardView
         content={content}
         onChange={editing ? setContent : undefined}
         className="pb-32"
         controls={
-          <button
-            type="button"
-            className={postcardStyles.editToggle}
-            aria-pressed={editing}
-            onClick={() => setEditing(!editing)}
-          >
-            {editing ? "Done" : "Edit"}
-          </button>
+          <>
+            <StyleControl content={content} onChange={setContent} />
+            <button
+              type="button"
+              className={postcardStyles.editToggle}
+              aria-pressed={editing}
+              onClick={() => setEditing(!editing)}
+            >
+              {editing ? "Done" : "Edit"}
+            </button>
+          </>
         }
       />
+      {editing ? (
+        <div className="fixed inset-x-0 bottom-[calc(max(0.75rem,env(safe-area-inset-bottom))+4.25rem)] z-50 flex justify-center px-2">
+          <FormatToolbar />
+        </div>
+      ) : null}
       <div className="fixed inset-x-0 bottom-0 z-40 px-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-4">
         <div className="mx-auto flex max-w-[600px] items-center gap-2 rounded-full bg-[#2c2c2f] p-2 pl-5 text-white shadow-lg ring-1 ring-white/10">
           <div className="min-w-0 flex-1">

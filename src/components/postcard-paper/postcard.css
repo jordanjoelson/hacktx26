@@ -1,0 +1,310 @@
+/* Paper format styles. Everything is prefixed `pc-` so it can't leak into other pages. */
+
+.pc-root {
+  --pc-ink: #1d1b2e;
+  --pc-body: rgb(29 27 46 / 0.76);
+  --pc-muted: rgb(29 27 46 / 0.48);
+  --pc-line: rgb(29 27 46 / 0.12);
+  --pc-line-strong: rgb(29 27 46 / 0.32);
+  --pc-paper: #fffdf8;
+  --pc-wash: rgb(29 27 46 / 0.05);
+  --pc-focus: #0047ab;
+  color: var(--pc-ink);
+  background:
+    radial-gradient(60rem 40rem at 10% -10%, #ffd9c2 0%, transparent 60%),
+    radial-gradient(50rem 40rem at 100% 20%, #d9d4ff 0%, transparent 60%),
+    radial-gradient(60rem 50rem at 50% 120%, #ffe7f1 0%, transparent 60%),
+    #f7f2ec;
+  background-attachment: fixed;
+}
+
+/* Dark mode: the same sheets of paper at night. */
+.pc-root[data-mode="dark"] {
+  --pc-ink: #f3f1ec;
+  --pc-body: rgb(243 241 236 / 0.8);
+  --pc-muted: rgb(243 241 236 / 0.5);
+  --pc-line: rgb(255 255 255 / 0.12);
+  --pc-line-strong: rgb(255 255 255 / 0.32);
+  --pc-paper: #1e1d22;
+  --pc-wash: rgb(255 255 255 / 0.07);
+  --pc-focus: #8bb8e8;
+  background:
+    radial-gradient(60rem 40rem at 10% -10%, #3a2a24 0%, transparent 60%),
+    radial-gradient(50rem 40rem at 100% 20%, #262340 0%, transparent 60%),
+    radial-gradient(60rem 50rem at 50% 120%, #33212b 0%, transparent 60%),
+    #141316;
+}
+
+/* ---------- Paper ---------- */
+
+.pc-paper {
+  background-color: var(--pc-paper);
+  box-shadow:
+    0 24px 50px -20px rgba(29, 27, 46, 0.25),
+    0 2px 4px rgba(29, 27, 46, 0.06);
+}
+.pc-root[data-mode="dark"] .pc-paper {
+  box-shadow:
+    0 24px 60px -20px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+/* ---------- Stories ----------
+ * Phone: photo, then the text, then any paragraphs that were moved. Wider: photo and text side by side,
+ * and when a story runs long its last paragraphs sit under the photo instead of leaving dead space there. */
+
+.pc-story {
+  display: grid;
+  gap: 20px;
+  grid-template-areas: "media" "text" "tail";
+}
+.pc-story > .pc-media { grid-area: media; min-width: 0; }
+.pc-story > .pc-text { grid-area: text; min-width: 0; }
+.pc-story > .pc-tail { grid-area: tail; min-width: 0; }
+@media (min-width: 640px) {
+  .pc-story[data-media] {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    grid-template-areas: "media text" "tail text";
+    column-gap: 32px;
+    row-gap: 16px;
+    align-items: start;
+  }
+  .pc-story[data-media][data-flip] { grid-template-areas: "text media" "text tail"; }
+}
+
+/* ---------- Text settings ---------- */
+
+.pc-root[data-align="center"] .pc-body { text-align: center; }
+.pc-root[data-align="justify"] .pc-body { text-align: justify; hyphens: auto; }
+.pc-root[data-headings="regular"] .pc-heading { font-weight: 400; }
+.pc-root strong { font-weight: 700; color: var(--pc-ink); }
+
+/* ---------- Editing in place ---------- */
+
+.pc-edit-text {
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px dashed var(--pc-line-strong);
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  line-height: inherit;
+  text-align: inherit;
+  white-space: pre-line;
+  cursor: text;
+}
+.pc-edit-text:hover { background: var(--pc-wash); }
+.pc-edit-field {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 2px 4px;
+  resize: none;
+  overflow: hidden;
+  border: 0;
+  border-radius: 4px;
+  background: var(--pc-wash);
+  outline: 2px solid var(--pc-focus);
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  line-height: inherit;
+  text-align: inherit;
+  white-space: pre-wrap;
+}
+.pc-empty { color: var(--pc-muted); }
+
+/* ||spoiler||: a solid bar until tapped. */
+.pc-spoiler {
+  display: inline;
+  padding: 0 3px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--pc-line-strong);
+  color: transparent;
+  font: inherit;
+  line-height: inherit;
+  cursor: pointer;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+.pc-spoiler > span { color: transparent; }
+.pc-spoiler-shown {
+  padding: 0 3px;
+  border-radius: 4px;
+  background: var(--pc-wash);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+@keyframes pc-page-next {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes pc-page-prev {
+  from {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.pc-page-next {
+  animation: pc-page-next 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.pc-page-prev {
+  animation: pc-page-prev 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* ---------- Symbols ---------- */
+
+/* Ticket: half-circle notches cut out of both sides. */
+.pc-ticket {
+  -webkit-mask:
+    radial-gradient(circle 14px at 0 50%, #0000 98%, #000) left / 51% 100% no-repeat,
+    radial-gradient(circle 14px at 100% 50%, #0000 98%, #000) right / 51% 100% no-repeat;
+  mask:
+    radial-gradient(circle 14px at 0 50%, #0000 98%, #000) left / 51% 100% no-repeat,
+    radial-gradient(circle 14px at 100% 50%, #0000 98%, #000) right / 51% 100% no-repeat;
+}
+
+/* Bookmark ribbon: a strip with a V cut out of the bottom. */
+.pc-ribbon {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%);
+}
+
+/* ---------- Inline marks ---------- */
+
+/* A marker swipe that sweeps across just the words, wrapping cleanly across lines. */
+.pc-highlight {
+  color: inherit;
+  background: linear-gradient(100deg, #ffe8a3 0%, #ffe08a 100%) no-repeat 0 60% / 0% 72%;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  border-radius: 3px 6px 4px 7px;
+  padding: 0 2px;
+  animation: pc-swipe 700ms 700ms cubic-bezier(0.3, 0.8, 0.3, 1) forwards;
+}
+
+/* ++pink++: the same swipe in pink. */
+.pc-pink {
+  color: inherit;
+  background: linear-gradient(100deg, #ffc2dc 0%, #ff9cc8 100%) no-repeat 0 60% / 0% 72%;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  border-radius: 3px 6px 4px 7px;
+  padding: 0 2px;
+  animation: pc-swipe 700ms 800ms cubic-bezier(0.3, 0.8, 0.3, 1) forwards;
+}
+/* Marker colors stay bright at night, so the words on them stay dark. */
+.pc-root[data-mode="dark"] :is(.pc-highlight, .pc-pink) { color: #1d1b2e; }
+
+@keyframes pc-swipe {
+  to {
+    background-size: 100% 72%;
+  }
+}
+
+.pc-strike {
+  text-decoration: none;
+  background: linear-gradient(currentColor, currentColor) no-repeat 0 55% / 0% 1.5px;
+  animation: pc-strike 500ms 1100ms ease-out forwards;
+}
+
+@keyframes pc-strike {
+  to {
+    background-size: 100% 1.5px;
+  }
+}
+
+/* ---------- Motion ---------- */
+
+@keyframes pc-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.pc-spin {
+  animation: pc-spin var(--dur, 60s) linear infinite;
+}
+
+/* Cards rise in one after another on load. */
+@keyframes pc-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.pc-rise {
+  animation: pc-rise 500ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: calc(var(--i, 0) * 60ms);
+}
+
+@keyframes pc-deal {
+  from {
+    opacity: 0.4;
+    transform: translate(var(--from-x, 0), 10px) rotate(var(--from-r, 0deg)) scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.pc-deal {
+  animation: pc-deal 360ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+@keyframes pc-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.pc-pop {
+  animation: pc-pop 280ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pc-spin,
+  .pc-page-next,
+  .pc-page-prev,
+  .pc-rise,
+  .pc-deal,
+  .pc-pop {
+    animation: none;
+  }
+  .pc-highlight,
+  .pc-pink,
+  .pc-strike {
+    animation: none;
+    background-size: 100% 72%;
+  }
+  .pc-strike {
+    background-size: 100% 1.5px;
+  }
+}

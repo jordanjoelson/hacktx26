@@ -1,5 +1,5 @@
 // Postcard content: one person's weekly postcard, stored as JSON in postcards.content.
-// Text fields support ==highlight==, ++pink highlight++, ~~cross out~~, ||spoiler|| (tap to reveal), and {name} for the recipient.
+// Text fields support ==highlight==, ++pink highlight++, **bold**, ~~cross out~~, ||spoiler|| (tap to reveal), and {name} for the recipient.
 // Shared with the web app (src/lib/postcard.ts re-exports it), so keep it free of imports and path aliases.
 
 export interface PostcardPhoto {
@@ -40,6 +40,75 @@ export interface PostcardContent {
   tip: string;
   funFact: string;
   dates: PostcardDate[];
+  /** How the sender styled it in the editor. Missing fields use DEFAULT_STYLE. Set from the browser, never by the agent. */
+  style?: PostcardStyle;
+}
+
+/** Blog: Jordan's single-column feed. Paper: sheets of paper with mood-colored sections. Grid: a card grid. */
+export type PostcardFormat = "blog" | "paper" | "grid";
+export type PostcardMode = "light" | "dark";
+export type PostcardAlign = "left" | "center" | "justify";
+/** Which side photos sit on beside their text (paper and grid). */
+export type PostcardPhotoSide = "alternate" | "left" | "right";
+
+/** Section labels the sender can rename, e.g. "Fun fact". Missing labels use the format's default wording. */
+export const LABEL_KEYS = ["opener", "funFact", "recs", "tip", "dates", "later", "signoff"] as const;
+export type PostcardLabelKey = (typeof LABEL_KEYS)[number];
+
+export interface PostcardStyle {
+  format?: PostcardFormat;
+  mode?: PostcardMode;
+  /** Alignment of the body text. */
+  align?: PostcardAlign;
+  photoSide?: PostcardPhotoSide;
+  /** Story and section titles in bold (the default) or regular weight. */
+  boldHeadings?: boolean;
+  labels?: Partial<Record<PostcardLabelKey, string>>;
+}
+
+export const DEFAULT_STYLE: Required<Omit<PostcardStyle, "labels">> = {
+  format: "blog",
+  mode: "dark",
+  align: "left",
+  photoSide: "alternate",
+  boldHeadings: true,
+};
+
+const MAX_LABEL = 60;
+const oneOf = <T extends string>(value: unknown, options: readonly T[]): T | undefined =>
+  options.includes(value as T) ? (value as T) : undefined;
+
+/**
+ * Keeps only valid style settings from untrusted input (the browser). Anything unknown is dropped,
+ * labels are trimmed to short single lines, and an empty result is undefined.
+ */
+export function sanitizeStyle(input: unknown): PostcardStyle | undefined {
+  if (!input || typeof input !== "object") return undefined;
+  const raw = input as Record<string, unknown>;
+  const style: PostcardStyle = {};
+  const format = oneOf(raw.format, ["blog", "paper", "grid"] as const);
+  const mode = oneOf(raw.mode, ["light", "dark"] as const);
+  const align = oneOf(raw.align, ["left", "center", "justify"] as const);
+  const photoSide = oneOf(raw.photoSide, ["alternate", "left", "right"] as const);
+  if (format) style.format = format;
+  if (mode) style.mode = mode;
+  if (align) style.align = align;
+  if (photoSide) style.photoSide = photoSide;
+  if (typeof raw.boldHeadings === "boolean") style.boldHeadings = raw.boldHeadings;
+  if (raw.labels && typeof raw.labels === "object") {
+    const labels: Partial<Record<PostcardLabelKey, string>> = {};
+    for (const key of LABEL_KEYS) {
+      const value = (raw.labels as Record<string, unknown>)[key];
+      if (typeof value === "string" && value.trim()) labels[key] = value.replace(/\s+/g, " ").trim().slice(0, MAX_LABEL);
+    }
+    if (Object.keys(labels).length) style.labels = labels;
+  }
+  return Object.keys(style).length ? style : undefined;
+}
+
+/** The style with defaults filled in. */
+export function resolveStyle(style: PostcardStyle | undefined): Required<Omit<PostcardStyle, "labels">> & { labels: PostcardStyle["labels"] } {
+  return { ...DEFAULT_STYLE, ...style, labels: style?.labels };
 }
 
 export const SAMPLE_POSTCARD: PostcardContent = {
