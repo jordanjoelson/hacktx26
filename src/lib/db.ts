@@ -1,4 +1,3 @@
-import { randomBytes } from "node:crypto";
 import pg from "pg";
 import type { PostcardContent } from "./postcard";
 import { TIGER_CA } from "./tiger-ca";
@@ -49,12 +48,13 @@ export interface SendInfo {
 export async function getSendInfo(editToken: string): Promise<SendInfo | undefined> {
   const { rows } = await db().query<{ invite_code: string; subscribers: number; sent: boolean }>(
     `with p as (select user_id, sent_at from postcards where edit_token = $1)
-     update users u set invite_code = coalesce(u.invite_code, $2)
+     -- Generated in Postgres (gen_random_uuid is cryptographically random): Next.js forbids random values while rendering.
+     update users u set invite_code = coalesce(u.invite_code, left(replace(gen_random_uuid()::text, '-', ''), 10))
      from p where u.id = p.user_id
      returning u.invite_code,
                p.sent_at is not null as sent,
                (select count(*) from subscribers s where s.sender_id = u.id)::int as subscribers`,
-    [editToken, randomBytes(6).toString("base64url")],
+    [editToken],
   );
   const row = rows[0];
   return row && { inviteCode: row.invite_code, subscribers: row.subscribers, sent: row.sent };
