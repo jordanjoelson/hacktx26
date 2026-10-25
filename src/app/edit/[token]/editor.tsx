@@ -2,18 +2,17 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { Postcard } from "@/components/postcard";
+import postcardStyles from "@/components/postcard.module.css";
 import type { SendInfo } from "@/lib/db";
 import type { PostcardContent } from "@/lib/postcard";
 import { savePostcard, sendPostcard } from "./actions";
 
 export function Editor({
   editToken,
-  viewToken,
   initial,
   send: sendInfo,
 }: {
   editToken: string;
-  viewToken: string;
   initial: PostcardContent;
   send: SendInfo;
 }) {
@@ -22,6 +21,8 @@ export function Editor({
   const [sent, setSent] = useState(sendInfo.sent);
   const [error, setError] = useState<string | null>(null);
   const [panel, setPanel] = useState(false);
+  // Opens as recipients will see it; Edit (top right, owner only) makes the text editable.
+  const [editing, setEditing] = useState(false);
   const [working, startWork] = useTransition();
   const dirty = content !== saved;
 
@@ -67,37 +68,45 @@ export function Editor({
 
   return (
     <>
-      <Postcard content={content} onChange={setContent} className="pb-32" />
+      <Postcard
+        content={content}
+        onChange={editing ? setContent : undefined}
+        className="pb-32"
+        controls={
+          <button
+            type="button"
+            className={postcardStyles.editToggle}
+            aria-pressed={editing}
+            onClick={() => setEditing(!editing)}
+          >
+            {editing ? "Done" : "Edit"}
+          </button>
+        }
+      />
       <div className="fixed inset-x-0 bottom-0 z-40 px-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-4">
-        <div className="mx-auto flex max-w-3xl items-center gap-2 rounded-2xl bg-black p-2 pl-4 text-white shadow-lg">
+        <div className="mx-auto flex max-w-[600px] items-center gap-2 rounded-full bg-[#2c2c2f] p-2 pl-5 text-white shadow-lg ring-1 ring-white/10">
           <div className="min-w-0 flex-1">
             <p role="status" className={`text-sm ${error ? "text-[#ffb7d5]" : ""}`}>
               {status}
             </p>
-            <p className="hidden truncate text-xs text-white/60 sm:block">
-              Tap text to edit · ==highlight== · ++pink++ · ~~cross out~~ · {"{name}"}
-            </p>
+            {editing ? (
+              <p className="hidden truncate text-xs text-white/60 sm:block">
+                Tap text to edit · ==highlight== · ++pink++ · ~~cross out~~ · ||spoiler|| · {"{name}"}
+              </p>
+            ) : null}
           </div>
-          <a
-            href={`/p/${viewToken}`}
-            target="_blank"
-            rel="noreferrer"
-            className="rounded-xl px-3 py-2.5 text-sm text-white/80 hover:text-white"
-          >
-            Preview
-          </a>
           <button
             type="button"
             onClick={save}
             disabled={!dirty || working}
-            className="rounded-xl bg-white/15 px-4 py-2.5 text-sm disabled:opacity-40"
+            className="rounded-full bg-white/15 px-4 py-2.5 text-sm font-semibold disabled:opacity-40"
           >
             Save
           </button>
           <button
             type="button"
             onClick={() => setPanel(true)}
-            className="rounded-xl bg-[#fff04a] px-4 py-2.5 text-sm text-black"
+            className="rounded-full bg-white px-4 py-2.5 text-sm font-semibold text-black"
           >
             Send
           </button>

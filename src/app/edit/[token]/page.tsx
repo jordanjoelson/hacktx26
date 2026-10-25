@@ -22,5 +22,5 @@ async function EditLoader({ params }: Pick<PageProps<"/edit/[token]">, "params">
   const { token } = await params;
   const [postcard, send] = await Promise.all([getPostcardByEditToken(token), getSendInfo(token)]);
   if (!postcard || !send) notFound();
-  return <Editor editToken={token} viewToken={postcard.viewToken} initial={postcard.content} send={send} />;
+  return <Editor editToken={token} initial={postcard.content} send={send} />;
 }

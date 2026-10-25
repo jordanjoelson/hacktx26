@@ -58,13 +58,13 @@ async function deliverPending(app: App): Promise<void> {
 
     const who = sender?.name ?? "Your friend";
     let delivered = 0;
-    for (const { phone } of subs) {
+    for (const sub of subs) {
       try {
-        const space = await imessage(app).space.create(phone);
+        const space = await imessage(app).space.create(sub.phone);
         await space.send(`${who}'s recap is here 💌 ${APP_URL}/p/${postcard.view_token}`);
         delivered++;
       } catch (err) {
-        console.error(`  failed to deliver recap ${postcard.id} to ${phone}:`, err);
+        console.error(`  failed to deliver recap ${postcard.id} to ${sub.phone}:`, err);
       }
     }
     console.log(`${new Date().toISOString()} recap ${postcard.id} delivered to ${delivered}/${subs.length}`);

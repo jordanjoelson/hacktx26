@@ -1,8 +1,8 @@
-import type { PostcardContent } from "./postcard.ts";
+import { storyPhotoIndexes, type PostcardContent } from "./postcard.ts";
 
 /** Use the same recipient substitution as the page, without reading formatting aloud. */
 export function plainPostcardText(text: string, name: string): string {
-  return text.replaceAll("{name}", name).replace(/~~[\s\S]*?~~/g, "")
+  return text.replaceAll("{name}", name).replace(/~~[\s\S]*?~~/g, "").replace(/\|\|[\s\S]*?\|\|/g, "(spoiler)")
     .replace(/==([\s\S]*?)==|\+\+([\s\S]*?)\+\+/g, "$1$2")
     .replace(/\s+/g, " ").trim();
 }
@@ -10,12 +10,12 @@ export function plainPostcardText(text: string, name: string): string {
 export function postcardNarration(content: PostcardContent): string {
   const stories = content.stories.map((story, index) => ({ story, index }))
     .filter(({ story }) => story.trim());
-  const usedPhotos = new Set(stories.map(({ index }) => index));
+  const usedPhotos = new Set(stories.flatMap(({ index }) => storyPhotoIndexes(content, index)));
   const storyParts = ({ story, index }: { story: string; index: number }) =>
-    [content.storyTitles?.[index], story, content.photos[index]?.caption];
+    [content.storyTitles?.[index], story, ...storyPhotoIndexes(content, index).map((i) => content.photos[i]?.caption)];
   const parts = [
     `A postcard from ${content.from || "a friend"}, for ${content.to || "you"}.`,
-    content.period, content.title, content.intro,
+    content.period, content.title, content.intro, content.opener,
     ...(stories[0] ? storyParts(stories[0]) : []),
     content.funFact,
     ...stories.slice(1).flatMap(storyParts),

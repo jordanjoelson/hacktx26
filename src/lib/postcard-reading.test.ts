@@ -7,6 +7,10 @@ test("narration resolves names and emphasis without reading crossed-out text", (
   assert.equal(plainPostcardText("{name}, ==Friday== was ++lovely++. ~~Actually, no.~~", "Maya"), "Maya, Friday was lovely.");
 });
 
+test("narration doesn't give away spoilers", () => {
+  assert.equal(plainPostcardText("The winner is ||Sam||!", "Maya"), "The winner is (spoiler)!");
+});
+
 test("older postcards work without editorial fields and empty sections", () => {
   const legacy: PostcardContent = { from: "Jo", to: "Lee", stories: ["A small update."], photos: [], recs: [], dates: [], tip: "", funFact: "" };
   assert.equal(postcardNarration(legacy), "A postcard from Jo, for Lee.\n\nA small update.");

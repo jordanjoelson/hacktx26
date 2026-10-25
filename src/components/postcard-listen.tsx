@@ -4,6 +4,17 @@ import { useEffect, useRef, useState } from "react";
 import { speechChunks } from "@/lib/postcard-reading";
 import styles from "./postcard.module.css";
 
+// Higher-quality voices most devices ship (Apple enhanced/premium and Siri, Edge/Windows "Natural", Chrome's Google voices).
+const NICE_VOICE = /natural|neural|premium|enhanced|siri|samantha|ava|google us english|aria|jenny/i;
+
+/** Picks the most natural English voice available, or undefined to keep the browser default. */
+function bestVoice(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | undefined {
+  const english = voices.filter((voice) => voice.lang.startsWith("en"));
+  return english.find((voice) => NICE_VOICE.test(voice.name) && voice.lang === "en-US")
+    ?? english.find((voice) => NICE_VOICE.test(voice.name))
+    ?? english.find((voice) => voice.lang === "en-US");
+}
+
 export function PostcardListen({ text }: { text: string }) {
   const [state, setState] = useState<"idle" | "playing" | "paused">("idle");
   const [progress, setProgress] = useState(0);
@@ -64,6 +75,8 @@ export function PostcardListen({ text }: { text: string }) {
       const current = new SpeechSynthesisUtterance(chunks[index]);
       utterance.current = current;
       current.lang = "en-US";
+      const voice = bestVoice(synth.getVoices());
+      if (voice) current.voice = voice;
       current.rate = 1;
       current.onboundary = (event) => {
         if (token === run.current) setProgress(Math.min(100, (completed + event.charIndex) / length * 100));
@@ -98,15 +111,14 @@ export function PostcardListen({ text }: { text: string }) {
         )}
       </button>
       <div className={styles.audioCopy}>
-        <span className={styles.audioTitle}>Take the week with you.</span>
+        <span className={styles.audioTitle}>Listen to this recap</span>
         <span className={styles.audioDetail} role="status">
-          {error || (state === "playing" ? "Reading your postcard aloud" : state === "paused" ? "Paused — whenever you're ready" : `Listen to this postcard · About ${minutes} min`)}
+          {error || (state === "playing" ? "Reading your postcard aloud" : state === "paused" ? "Paused — whenever you're ready" : `About ${minutes} min`)}
         </span>
       </div>
       {state !== "idle" && (
         <button className={styles.stop} type="button" onClick={stop}>Stop</button>
       )}
-      <span className={styles.audioBadge} aria-hidden="true">A LITTLE LIFE, OUT LOUD</span>
       <progress className={styles.audioProgress} value={progress} max={100} aria-label="Postcard listening progress" />
     </div>
   );
