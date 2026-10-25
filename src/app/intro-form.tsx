@@ -17,7 +17,8 @@ function formatLine(e164: string): string {
   return d.length === 10 ? `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}` : e164;
 }
 
-export function IntroForm() {
+/** `invite` is the sender's code on /j/<code> pages; it goes into the first text so the agent subscribes them. */
+export function IntroForm({ invite }: { invite?: string }) {
   const [state, action, pending] = useActionState(requestIntro, initial);
   const link = state.status === "ready" ? state.link : undefined;
 
@@ -33,7 +34,7 @@ export function IntroForm() {
         <p className="mt-2 text-base leading-7 text-neutral-800">
           Text <span className="font-semibold">&ldquo;{state.hello}&rdquo;</span> to{" "}
           <span className="font-semibold whitespace-nowrap">{formatLine(state.line)}</span> from your iPhone, and
-          Lately will text back.
+          {invite ? "you'll get their recaps from Lately." : "Lately will text back."}
         </p>
         <a
           href={state.link}
@@ -49,6 +50,7 @@ export function IntroForm() {
 
   return (
     <form action={action}>
+      {invite ? <input type="hidden" name="invite" value={invite} /> : null}
       <div
         className={`flex h-14 items-center rounded-lg border bg-white px-4 focus-within:border-[#0047ab] ${error ? "border-[#b42318]" : "border-neutral-200"}`}
       >

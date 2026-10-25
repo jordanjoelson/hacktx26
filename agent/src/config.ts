@@ -22,3 +22,6 @@ function loadConfig(): Config {
 }
 
 export const config = loadConfig();
+
+/** Where links in texts point (the web app). Optional; defaults to the local dev server. */
+export const APP_URL = (process.env.APP_URL ?? "http://localhost:3001").replace(/\/$/, "");

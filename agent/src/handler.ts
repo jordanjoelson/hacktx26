@@ -3,6 +3,7 @@ import { imessage } from "spectrum-ts/providers/imessage";
 import { museReply } from "./muse";
 import { createRecap, RECAP_COMMAND } from "./recap";
 import { chooseReply } from "./responses";
+import { subscribe, SUBSCRIBE_TEXT } from "./subscribers";
 import { getUser, markIntroduced, remember, saveMedia, saveName, setPendingRecap, type UserState } from "./users";
 
 export type App = SpectrumInstance;
@@ -91,6 +92,9 @@ function mediaNote(media: MediaItem[]): string {
  */
 async function composeReply(user: UserState, inbound: Inbound, spectrumId: string): Promise<string> {
   const turn = [inbound.texts.join("\n"), mediaNote(inbound.media)].filter(Boolean).join("\n");
+
+  const invite = SUBSCRIBE_TEXT.exec(turn);
+  if (invite) return finish(user, turn, spectrumId, await subscribe(user, invite[1]!));
 
   let reply: string | undefined;
   const recap = inbound.media.length === 0 ? RECAP_COMMAND.exec(turn) : null;

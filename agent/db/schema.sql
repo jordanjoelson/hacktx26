@@ -61,3 +61,17 @@ create table if not exists postcards (
   updated_at timestamptz not null default now()
 );
 create index if not exists postcards_user_week on postcards (user_id, week_start);
+
+-- Subscribing: each sender has a public invite link (/j/<invite_code>). Whoever opens it texts Lately once,
+-- which opts them in, and from then on Lately texts them that sender's recaps.
+alter table users add column if not exists invite_code text unique;
+
+create table if not exists subscribers (
+  sender_id     bigint not null references users(id),   -- whose recaps
+  subscriber_id bigint not null references users(id),   -- who gets them
+  created_at    timestamptz not null default now(),
+  primary key (sender_id, subscriber_id)
+);
+
+-- sent_at: the sender tapped Send on the edit page. delivered_at: the agent picked it up and texted subscribers.
+alter table postcards add column if not exists delivered_at timestamptz;

@@ -1,4 +1,5 @@
 import { randomBytes } from "node:crypto";
+import { APP_URL } from "./config";
 import { db } from "./db";
 import { museComplete } from "./muse";
 import { SAMPLE_POSTCARD, type PostcardContent } from "./postcard";
@@ -6,9 +7,6 @@ import type { UserState } from "./users";
 
 /** "recap" or "recap for Maya", on its own. */
 export const RECAP_COMMAND = /^\s*recap(?:\s+for\s+(.{1,40}?))?\s*[.!?]*\s*$/i;
-
-// Where edit links point. Set APP_URL to the deployed web app.
-const APP_URL = (process.env.APP_URL ?? "http://localhost:3001").replace(/\/$/, "");
 
 const PROMPT = `You write Lately postcards: a short, warm weekly recap that a person sends to someone they care about.
 Write in first person as the sender, talking to the recipient. Use only details from the sender's messages below; never invent events, places, or people. If there isn't much, keep it short and honest.

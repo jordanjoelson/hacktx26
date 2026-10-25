@@ -2,6 +2,7 @@ import { config } from "./config";
 import { Spectrum } from "spectrum-ts";
 import { imessage } from "spectrum-ts/providers/imessage";
 import { describeContent, handleInbound } from "./handler";
+import { startDeliveries } from "./subscribers";
 
 const app = await Spectrum({
   projectId: config.PHOTON_PROJECT_ID,
@@ -39,6 +40,7 @@ process.on("SIGINT", () => void shutdown("SIGINT"));
 process.on("SIGTERM", () => void shutdown("SIGTERM"));
 
 console.log("Lately is listening…");
+startDeliveries(app);
 
 for await (const [space, message] of app.messages) {
   if (message.direction !== "inbound") continue;
