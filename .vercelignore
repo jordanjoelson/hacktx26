@@ -1,0 +1,7 @@
+# Never upload secrets or local build output. agent/src stays: the web app imports agent/src/postcard.ts.
+.env*
+**/.env*
+.next
+node_modules
+agent/node_modules
+lately-agent.zip
