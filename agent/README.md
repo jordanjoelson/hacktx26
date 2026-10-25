@@ -22,12 +22,12 @@ Media-only messages, and any message where Muse fails or takes longer than 8 s, 
 - The sender's message flips to "Read" as soon as it arrives.
 - A typing indicator shows while the agent works on a reply.
 - After a sender's first reply, the agent sends a contact card named "Lately" with the line's number so they can save it.
-- Names, recent history, and "already sent the card" live in memory (`src/users.ts`) and reset when the process restarts. They move to Supabase next.
+- Names, recent history, and "already sent the card" live in memory (`src/users.ts`) and reset when the process restarts. They move to Tiger Cloud (Postgres) next; see [Database](#database).
 - Each sender's messages are handled in order through a per-sender queue, so one sender's slow work never blocks anyone else.
 - Each inbound message is logged as one line (timestamp, sender, content type). Each attachment's name, mimeType, and size are logged too. Nothing is saved yet.
 - An error in one message is logged and never crashes the loop.
 
-Coming next: onboarding, saving media to Supabase, Muse Spark postcard generation, and weekly cron sends. Most of that goes in `src/handler.ts`.
+Coming next: onboarding, saving users and history to Tiger Cloud, saving media (storage not chosen yet), Muse Spark postcard generation, and weekly cron sends. Most of that goes in `src/handler.ts`.
 
 ## Layout
 
@@ -54,7 +54,7 @@ Requires Node 20+.
 ```bash
 cd agent
 npm install
-cp .env.example .env      # then fill in PHOTON_PROJECT_ID, PHOTON_PROJECT_SECRET, and MUSE_API_KEY
+cp .env.example .env      # then fill in PHOTON_PROJECT_ID, PHOTON_PROJECT_SECRET, MUSE_API_KEY, and DATABASE_URL
 npm run dev               # tsx watch: restarts on file changes
 ```
 
@@ -67,6 +67,14 @@ Other scripts:
 - `npm start`: run once without watching (this is what Railway runs)
 - `npm run typecheck`: `tsc --noEmit`
 
+## Database
+
+The agent's database is a **Tiger Cloud** service (managed Postgres 18 with TimescaleDB), on the free plan.
+
+- Connection string goes in `.env` as `DATABASE_URL` (`postgres://tsdbadmin:<password>@<host>:<port>/tsdb?sslmode=require`). Get it from a teammate or the [Tiger Cloud console](https://console.cloud.tigerdata.com). Never commit it.
+- Quick check: `psql "$DATABASE_URL" -c "\dx timescaledb"`
+- Nothing reads `DATABASE_URL` yet. When `users.ts` moves to the database, add it to `REQUIRED` in `src/config.ts`.
+
 ## Deploy to Railway
 
 This is a **background worker**. It has no HTTP server, no port, and no health check. It holds a streaming connection to Spectrum.
@@ -74,7 +82,7 @@ This is a **background worker**. It has no HTTP server, no port, and no health c
 1. Create a new service from the GitHub repo.
 2. **Settings → Root Directory:** `agent/`
 3. **Start command:** `npm start`
-4. **Variables:** add `PHOTON_PROJECT_ID`, `PHOTON_PROJECT_SECRET`, and `MUSE_API_KEY`.
+4. **Variables:** add `PHOTON_PROJECT_ID`, `PHOTON_PROJECT_SECRET`, `MUSE_API_KEY`, and `DATABASE_URL`.
 5. **Restart policy:** "On Failure"
 6. Don't generate a public domain. Nothing needs one.
 
