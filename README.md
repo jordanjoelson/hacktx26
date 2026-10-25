@@ -13,7 +13,7 @@ Life moves fast. The little moments worth sharing (a dinner that ran late, a det
 
 We wanted to give your people the inside scoop on your life, without the pressure of starting a conversation when you're busy, and to bring back the feeling of getting mail from someone who's thinking of you.
 
-**Try it:** [hacktx26-ruddy.vercel.app](https://hacktx26-ruddy.vercel.app) · [Sample recap](https://hacktx26-ruddy.vercel.app/postcard)
+**Try it:** [hacktx26-ruddy.vercel.app](https://hacktx26-ruddy.vercel.app) · [Sample recap](https://hacktx26-ruddy.vercel.app/recap)
 
 ## 💬 What it does
 
